@@ -1,0 +1,62 @@
+export type Priority = 'high' | 'medium' | 'low';
+export type Category = 'visual_design' | 'usability' | 'accessibility' | 'performance';
+
+export interface Improvement {
+  id: string;
+  title: string;
+  description: string;
+  recommendation: string;
+  priority: Priority;
+  category: Category;
+}
+
+export interface AnalysisResult {
+  summary: string;
+  score: number;
+  improvements: Improvement[];
+}
+
+export interface CategoryInfo {
+  id: Category;
+  label: string;
+  icon: string;
+  colorClass: string;
+  bgClass: string;
+}
+
+export const CATEGORIES: CategoryInfo[] = [
+  { 
+    id: 'visual_design', 
+    label: 'Visual Design', 
+    icon: '🎨',
+    colorClass: 'text-coral',
+    bgClass: 'bg-coral/10 border-coral/30',
+  },
+  { 
+    id: 'usability', 
+    label: 'Usability', 
+    icon: '🧭',
+    colorClass: 'text-electric',
+    bgClass: 'bg-electric/10 border-electric/30',
+  },
+  { 
+    id: 'accessibility', 
+    label: 'Accessibility', 
+    icon: '♿',
+    colorClass: 'text-sunny',
+    bgClass: 'bg-sunny/10 border-sunny/30',
+  },
+  { 
+    id: 'performance', 
+    label: 'Performance', 
+    icon: '⚡',
+    colorClass: 'text-teal',
+    bgClass: 'bg-teal/10 border-teal/30',
+  },
+];
+
+export const PRIORITY_CONFIG = {
+  high: { label: 'High Priority', colorClass: 'bg-coral text-primary-foreground' },
+  medium: { label: 'Medium Priority', colorClass: 'bg-electric text-primary-foreground' },
+  low: { label: 'Low Priority', colorClass: 'bg-teal text-primary-foreground' },
+};
