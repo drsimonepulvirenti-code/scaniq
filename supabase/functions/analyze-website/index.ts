@@ -1,128 +1,202 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { websiteContent, url } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const { url } = await req.json();
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!url) {
+      return new Response(
+        JSON.stringify({ error: 'URL is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log("Analyzing website:", url);
-    console.log("Content length:", websiteContent?.length || 0);
+    const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-    const systemPrompt = `You are an expert UX/UI analyst. Analyze the provided website content and generate comprehensive improvement suggestions.
+    if (!FIRECRAWL_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'Firecrawl API key not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-For each issue found, provide:
-1. A clear, actionable title
-2. A brief description of the problem
-3. A recommended fix
-4. Priority level (high, medium, or low)
-5. Category (visual_design, usability, accessibility, or performance)
+    if (!LOVABLE_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'Lovable API key not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-Respond with a JSON object in this exact format:
+    console.log('Scraping website:', url);
+
+    // Step 1: Scrape the website with Firecrawl including screenshot
+    const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url,
+        formats: ['markdown', 'screenshot'],
+        onlyMainContent: false,
+        waitFor: 2000,
+      }),
+    });
+
+    if (!scrapeResponse.ok) {
+      const errorText = await scrapeResponse.text();
+      console.error('Firecrawl error:', errorText);
+      return new Response(
+        JSON.stringify({ error: `Failed to fetch website: ${scrapeResponse.status}` }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const scrapeData = await scrapeResponse.json();
+    
+    if (!scrapeData.success) {
+      return new Response(
+        JSON.stringify({ error: scrapeData.error || 'Failed to scrape website' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const markdown = scrapeData.data?.markdown || '';
+    const screenshot = scrapeData.data?.screenshot || '';
+    const metadata = scrapeData.data?.metadata || {};
+
+    console.log('Website scraped successfully, analyzing with AI...');
+    console.log('Screenshot available:', !!screenshot);
+
+    // Step 2: Analyze with Lovable AI
+    const analysisPrompt = `You are a UX/UI expert analyzing a website. Based on the following website content and metadata, provide a comprehensive analysis with specific improvement suggestions.
+
+Website URL: ${url}
+Website Title: ${metadata.title || 'Unknown'}
+Website Description: ${metadata.description || 'None provided'}
+
+Website Content:
+${markdown.substring(0, 15000)}
+
+Analyze this website and provide your response as a JSON object with this exact structure:
 {
-  "summary": "Brief overall assessment of the website (2-3 sentences)",
-  "score": <number 1-100 representing overall UX/UI quality>,
+  "score": <number from 0-100 representing overall UX/UI quality>,
+  "summary": "<2-3 sentence summary of the website's current UX/UI state>",
   "improvements": [
     {
       "id": "<unique-id>",
-      "title": "<issue title>",
-      "description": "<problem description>",
-      "recommendation": "<how to fix it>",
+      "title": "<short title>",
+      "description": "<detailed description of the issue>",
+      "recommendation": "<specific actionable recommendation>",
       "priority": "high" | "medium" | "low",
-      "category": "visual_design" | "usability" | "accessibility" | "performance"
+      "category": "visual_design" | "usability" | "accessibility" | "performance",
+      "screenshotNote": "<description of what to look for in the screenshot that relates to this issue, e.g., 'Look at the navigation bar at the top' or 'Notice the button colors in the hero section'>"
     }
   ]
 }
 
-Categories explained:
-- visual_design: Colors, typography, spacing, layout, visual hierarchy
-- usability: Navigation, user flows, CTAs, forms, content clarity
-- accessibility: Screen reader support, color contrast, keyboard navigation, alt text
-- performance: Load times, mobile responsiveness, image optimization
+Provide 6-10 specific, actionable improvements across all categories. Be specific about what elements need improvement and why. For each issue, include a screenshotNote that describes where in the page screenshot the user can see this issue.
 
-Analyze thoroughly and provide 8-15 actionable improvements across all categories.`;
+IMPORTANT: Return ONLY the JSON object, no additional text or markdown formatting.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: 'google/gemini-2.5-flash',
         messages: [
-          { role: "system", content: systemPrompt },
-          { 
-            role: "user", 
-            content: `Analyze this website (${url}):\n\n${websiteContent?.slice(0, 15000) || "No content available"}` 
+          {
+            role: 'user',
+            content: analysisPrompt,
           },
         ],
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('AI analysis error:', errorText);
       
-      if (response.status === 429) {
+      if (aiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), 
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Usage limit reached. Please add credits to continue." }), 
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      throw new Error(`AI gateway error: ${response.status}`);
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI credits exhausted. Please add more credits.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ error: 'Failed to analyze website' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    
-    console.log("AI response received, parsing...");
+    const aiData = await aiResponse.json();
+    const content = aiData.choices?.[0]?.message?.content;
 
-    // Parse the JSON from the response
+    if (!content) {
+      return new Response(
+        JSON.stringify({ error: 'No analysis content received' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('AI analysis received, parsing response...');
+
+    // Parse the JSON response
     let analysis;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
-      }
+      // Remove markdown code blocks if present
+      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      analysis = JSON.parse(cleanContent);
     } catch (parseError) {
-      console.error("Failed to parse AI response:", parseError);
-      console.log("Raw content:", content);
-      throw new Error("Failed to parse analysis results");
+      console.error('Failed to parse AI response:', content);
+      return new Response(
+        JSON.stringify({ error: 'Failed to parse analysis results' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log("Analysis complete:", analysis.improvements?.length, "improvements found");
+    // Add the screenshot and URL to the response
+    const result = {
+      ...analysis,
+      screenshot,
+      url,
+      analyzedAt: new Date().toISOString(),
+    };
 
-    return new Response(JSON.stringify(analysis), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("Error in analyze-website function:", error);
+    console.log('Analysis complete, returning results');
+
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), 
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error in analyze-website function:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'An unexpected error occurred' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

@@ -1,37 +1,31 @@
 import { cn } from '@/lib/utils';
+import { AnalysisResult, getScoreCategory } from '@/types/analysis';
 
 interface ScoreCardProps {
-  score: number;
-  summary: string;
-  url: string;
+  result: AnalysisResult;
 }
 
-export const ScoreCard = ({ score, summary, url }: ScoreCardProps) => {
+export const ScoreCard = ({ result }: ScoreCardProps) => {
+  const scoreCategory = getScoreCategory(result.score);
+  
   const getScoreColor = () => {
-    if (score >= 80) return 'text-teal';
-    if (score >= 60) return 'text-sunny';
-    if (score >= 40) return 'text-electric';
+    if (result.score >= 85) return 'text-teal';
+    if (result.score >= 70) return 'text-electric';
+    if (result.score >= 50) return 'text-sunny';
     return 'text-coral';
   };
 
-  const getScoreLabel = () => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Needs Work';
-    return 'Poor';
-  };
-
   const getScoreRingColor = () => {
-    if (score >= 80) return 'stroke-teal';
-    if (score >= 60) return 'stroke-sunny';
-    if (score >= 40) return 'stroke-electric';
+    if (result.score >= 85) return 'stroke-teal';
+    if (result.score >= 70) return 'stroke-electric';
+    if (result.score >= 50) return 'stroke-sunny';
     return 'stroke-coral';
   };
 
   // Calculate circumference and offset for circular progress
   const radius = 58;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
+  const offset = circumference - (result.score / 100) * circumference;
 
   return (
     <div className="bg-card rounded-3xl p-6 md:p-8 shadow-card border border-border animate-fade-up">
@@ -61,23 +55,53 @@ export const ScoreCard = ({ score, summary, url }: ScoreCardProps) => {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className={cn('text-4xl font-fredoka font-bold', getScoreColor())}>
-              {score}
+              {result.score}
             </span>
-            <span className="text-sm text-muted-foreground">{getScoreLabel()}</span>
+            <span className="text-sm text-muted-foreground">/100</span>
           </div>
         </div>
 
         {/* Summary */}
         <div className="flex-1 text-center md:text-left">
-          <h2 className="text-lg font-fredoka font-semibold mb-2">
-            Analysis Complete
-          </h2>
+          <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+            <h2 className="text-lg font-fredoka font-semibold">
+              Analysis Complete
+            </h2>
+            <span className={cn('px-2 py-0.5 rounded-full text-xs font-semibold', scoreCategory.colorClass, 'bg-muted')}>
+              {scoreCategory.label}
+            </span>
+          </div>
+          
           <p className="text-sm text-muted-foreground mb-3 break-all">
-            {url}
+            {result.url}
           </p>
+          
+          {/* Score Description */}
+          <div className="bg-muted/50 rounded-xl p-3 mb-3">
+            <p className="text-sm text-muted-foreground">
+              {scoreCategory.description}
+            </p>
+          </div>
+          
           <p className="text-foreground leading-relaxed">
-            {summary}
+            {result.summary}
           </p>
+
+          {/* Score Scale Legend */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-xs text-muted-foreground mb-2">Score Scale (1-100):</p>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="text-coral">0-29 Poor</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-coral">30-49 Needs Work</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-sunny">50-69 Average</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-electric">70-84 Good</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-teal">85-100 Excellent</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

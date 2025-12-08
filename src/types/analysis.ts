@@ -8,12 +8,16 @@ export interface Improvement {
   recommendation: string;
   priority: Priority;
   category: Category;
+  screenshotNote?: string;
 }
 
 export interface AnalysisResult {
   summary: string;
   score: number;
   improvements: Improvement[];
+  screenshot?: string;
+  url: string;
+  analyzedAt: string;
 }
 
 export interface CategoryInfo {
@@ -60,3 +64,39 @@ export const PRIORITY_CONFIG = {
   medium: { label: 'Medium Priority', colorClass: 'bg-electric text-primary-foreground' },
   low: { label: 'Low Priority', colorClass: 'bg-teal text-primary-foreground' },
 };
+
+export const SCORE_DESCRIPTIONS = {
+  excellent: { 
+    label: 'Excellent', 
+    description: 'Outstanding UX/UI! The website follows best practices with minimal issues.',
+    colorClass: 'text-teal'
+  },
+  good: { 
+    label: 'Good', 
+    description: 'Solid foundation with room for improvement. Address high-priority issues first.',
+    colorClass: 'text-electric'
+  },
+  average: { 
+    label: 'Average', 
+    description: 'Several areas need attention. Focus on usability and visual consistency.',
+    colorClass: 'text-sunny'
+  },
+  needsWork: { 
+    label: 'Needs Work', 
+    description: 'Significant improvements required. Prioritize accessibility and core usability.',
+    colorClass: 'text-coral'
+  },
+  poor: { 
+    label: 'Poor', 
+    description: 'Major UX/UI overhaul recommended. Consider a comprehensive redesign.',
+    colorClass: 'text-coral'
+  },
+};
+
+export function getScoreCategory(score: number) {
+  if (score >= 85) return SCORE_DESCRIPTIONS.excellent;
+  if (score >= 70) return SCORE_DESCRIPTIONS.good;
+  if (score >= 50) return SCORE_DESCRIPTIONS.average;
+  if (score >= 30) return SCORE_DESCRIPTIONS.needsWork;
+  return SCORE_DESCRIPTIONS.poor;
+}
