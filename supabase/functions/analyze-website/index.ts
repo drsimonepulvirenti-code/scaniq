@@ -101,12 +101,24 @@ Analyze this website and provide your response as a JSON object with this exact 
       "recommendation": "<specific actionable recommendation>",
       "priority": "high" | "medium" | "low",
       "category": "visual_design" | "usability" | "accessibility" | "performance",
-      "screenshotNote": "<description of what to look for in the screenshot that relates to this issue, e.g., 'Look at the navigation bar at the top' or 'Notice the button colors in the hero section'>"
+      "estimatedBenefit": <number from 0-100 representing the estimated UX improvement impact if this issue is fixed>,
+      "elementLocation": {
+        "section": "<specific page section, e.g., 'Hero Section', 'Navigation Bar', 'Footer', 'Product Cards'>",
+        "element": "<specific element, e.g., 'Main Headline', 'CTA Button', 'Search Input', 'Menu Links'>",
+        "visualDescription": "<detailed description of what this element looks like and where exactly it is on the page>"
+      }
     }
   ]
 }
 
-Provide 6-10 specific, actionable improvements across all categories. Be specific about what elements need improvement and why. For each issue, include a screenshotNote that describes where in the page screenshot the user can see this issue.
+Guidelines for estimatedBenefit:
+- 90-100: Critical fix that will dramatically improve user experience or conversions
+- 70-89: High impact improvement that significantly enhances usability
+- 50-69: Moderate improvement that will noticeably help users
+- 30-49: Nice-to-have enhancement with some positive effect
+- 0-29: Minor polish that provides subtle improvements
+
+Provide 6-10 specific, actionable improvements across all categories. Be specific about what elements need improvement and why. For each issue, describe the EXACT element and its location so users can identify it on the page.
 
 IMPORTANT: Return ONLY the JSON object, no additional text or markdown formatting.`;
 

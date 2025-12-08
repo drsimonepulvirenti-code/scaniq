@@ -1,6 +1,12 @@
 export type Priority = 'high' | 'medium' | 'low';
 export type Category = 'visual_design' | 'usability' | 'accessibility' | 'performance';
 
+export interface ElementLocation {
+  section: string;
+  element: string;
+  visualDescription: string;
+}
+
 export interface Improvement {
   id: string;
   title: string;
@@ -8,7 +14,8 @@ export interface Improvement {
   recommendation: string;
   priority: Priority;
   category: Category;
-  screenshotNote?: string;
+  estimatedBenefit: number;
+  elementLocation: ElementLocation;
 }
 
 export interface AnalysisResult {
