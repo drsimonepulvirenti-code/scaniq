@@ -48,7 +48,7 @@ const Index = () => {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral via-electric to-sunny flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-fredoka font-bold">UX Analyzer</h1>
+            <h1 className="text-xl font-fredoka font-bold">ScanIQ</h1>
           </div>
         </div>
       </header>
@@ -58,10 +58,7 @@ const Index = () => {
         <div className="space-y-8">
           {/* Hero Section */}
           {!analysisResult && !isLoading && <div className="text-center mb-8 animate-fade-up">
-              <h2 className="text-3xl md:text-4xl font-fredoka font-bold mb-4 bg-gradient-to-r from-coral via-electric to-sunny bg-clip-text text-transparent">
-                ​Scrap your website or product
-       
-              </h2>
+              <h2 className="text-3xl md:text-4xl font-fredoka font-bold mb-4 bg-gradient-to-r from-coral via-electric to-sunny bg-clip-text text-transparent">Ready to analyze your website?</h2>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto">
                 Get AI-powered recommendations to improve visual design, usability, accessibility, and performance
               </p>
