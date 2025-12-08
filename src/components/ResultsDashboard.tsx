@@ -8,11 +8,10 @@ import { RotateCcw } from 'lucide-react';
 
 interface ResultsDashboardProps {
   result: AnalysisResult;
-  url: string;
   onReset: () => void;
 }
 
-export const ResultsDashboard = ({ result, url, onReset }: ResultsDashboardProps) => {
+export const ResultsDashboard = ({ result, onReset }: ResultsDashboardProps) => {
   const [activePriority, setActivePriority] = useState<Priority | 'all'>('all');
 
   const filteredImprovements = useMemo(() => {
@@ -29,7 +28,7 @@ export const ResultsDashboard = ({ result, url, onReset }: ResultsDashboardProps
 
   return (
     <div className="space-y-8">
-      <ScoreCard score={result.score} summary={result.summary} url={url} />
+      <ScoreCard result={result} />
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <h3 className="text-2xl font-fredoka font-bold">
@@ -57,6 +56,7 @@ export const ResultsDashboard = ({ result, url, onReset }: ResultsDashboardProps
             key={improvement.id} 
             improvement={improvement}
             index={index}
+            screenshot={result.screenshot}
           />
         ))}
       </div>
