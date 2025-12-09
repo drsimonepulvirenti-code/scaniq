@@ -5,13 +5,76 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const AI_AGENTS_CONFIG: Record<string, { name: string; prompt: string }> = {
+  'ui-designer': {
+    name: 'UI Designer',
+    prompt: `You are an expert UI Designer analyzing a website. Focus on:
+- Color usage, contrast, and palette harmony
+- Typography choices, hierarchy, and readability
+- Spacing, margins, padding, and visual rhythm
+- Component design consistency
+- Modern design trends and best practices
+- Visual polish and attention to detail
+
+Provide specific CSS values, color codes, and visual references.`
+  },
+  'ux-designer': {
+    name: 'UX Designer', 
+    prompt: `You are an expert UX Designer analyzing a website. Focus on:
+- Navigation clarity and findability
+- User flow optimization and friction points
+- Form usability and error handling
+- Feedback mechanisms and micro-interactions
+- Cognitive load and information architecture
+- User mental models and expectations
+
+Provide user-centered recommendations with clear before/after scenarios.`
+  },
+  'seo-specialist': {
+    name: 'SEO Specialist',
+    prompt: `You are an expert SEO Specialist analyzing a website. Focus on:
+- Meta tags (title, description, Open Graph)
+- Heading structure and H1-H6 hierarchy
+- Content quality, keyword usage, and readability
+- Technical SEO (canonical URLs, structured data)
+- Core Web Vitals impact on rankings
+- Mobile-first indexing considerations
+
+Provide specific SEO recommendations with priority based on impact.`
+  },
+  'accessibility-expert': {
+    name: 'Accessibility Expert',
+    prompt: `You are an expert Accessibility Specialist analyzing a website. Focus on:
+- WCAG 2.1 AA/AAA compliance
+- Color contrast ratios
+- Screen reader compatibility and ARIA labels
+- Keyboard navigation and focus states
+- Motor accessibility and click targets
+- Cognitive accessibility and clear language
+
+Reference specific WCAG criteria and provide code examples.`
+  },
+  'performance-engineer': {
+    name: 'Performance Engineer',
+    prompt: `You are an expert Performance Engineer analyzing a website. Focus on:
+- Core Web Vitals (LCP, FID/INP, CLS)
+- Asset optimization (images, fonts, scripts)
+- Network efficiency and request count
+- Caching strategies and code splitting
+- JavaScript execution and bundle size
+- Mobile performance considerations
+
+Provide measurable metrics and expected improvement percentages.`
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { url } = await req.json();
+    const { url, enrichment, agentIds, websiteContent } = await req.json();
     
     if (!url) {
       return new Response(
@@ -23,16 +86,89 @@ serve(async (req) => {
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!FIRECRAWL_API_KEY) {
+    if (!LOVABLE_API_KEY) {
       return new Response(
-        JSON.stringify({ error: 'Firecrawl API key not configured' }),
+        JSON.stringify({ error: 'Lovable API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!LOVABLE_API_KEY) {
+    // Handle agent enrichment requests
+    if (enrichment && agentIds && Array.isArray(agentIds)) {
+      console.log('Running agent enrichment for:', agentIds);
+      
+      const enrichments = [];
+      
+      for (const agentId of agentIds) {
+        const agent = AI_AGENTS_CONFIG[agentId];
+        if (!agent) continue;
+
+        const enrichmentPrompt = `${agent.prompt}
+
+Website URL: ${url}
+Website Summary: ${websiteContent}
+
+Analyze this website from your expert perspective and provide your response as a JSON object:
+{
+  "improvements": [
+    {
+      "id": "<unique-id>",
+      "title": "<short title specific to your expertise>",
+      "description": "<detailed description from your expert perspective>",
+      "priority": "high" | "medium" | "low",
+      "specificAdvice": "<very specific actionable advice with examples, code snippets, or exact values>",
+      "estimatedImpact": <number 0-100 representing improvement potential>
+    }
+  ]
+}
+
+Provide 3-5 focused improvements from your area of expertise. Be very specific and actionable.
+
+IMPORTANT: Return ONLY the JSON object, no additional text.`;
+
+        try {
+          const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [{ role: 'user', content: enrichmentPrompt }],
+            }),
+          });
+
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            const content = aiData.choices?.[0]?.message?.content;
+            
+            if (content) {
+              const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+              const parsed = JSON.parse(cleanContent);
+              
+              enrichments.push({
+                agentId,
+                agentName: agent.name,
+                improvements: parsed.improvements || []
+              });
+            }
+          }
+        } catch (agentError) {
+          console.error(`Error with agent ${agentId}:`, agentError);
+        }
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Lovable API key not configured' }),
+        JSON.stringify({ enrichments }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Regular analysis flow
+    if (!FIRECRAWL_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'Firecrawl API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
