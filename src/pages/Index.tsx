@@ -2,32 +2,41 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AnalysisResult } from '@/types/analysis';
-import { UrlInput } from '@/components/UrlInput';
-import { EmptyState } from '@/components/EmptyState';
+import { Header } from '@/components/landing/Header';
+import { HeroSection } from '@/components/landing/HeroSection';
+import { FeaturesSection } from '@/components/landing/FeaturesSection';
+import { AICapabilitiesSection } from '@/components/landing/AICapabilitiesSection';
+import { IntegrationsSection } from '@/components/landing/IntegrationsSection';
+import { RolesSection } from '@/components/landing/RolesSection';
+import { UseCasesSection } from '@/components/landing/UseCasesSection';
+import { BottomCTA } from '@/components/landing/BottomCTA';
 import { LoadingState } from '@/components/LoadingState';
 import { ResultsDashboard } from '@/components/ResultsDashboard';
-import { Sparkles } from 'lucide-react';
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+
   const handleAnalyze = async (url: string) => {
     setIsLoading(true);
     setAnalysisResult(null);
+    
+    // Scroll to top to show loading state
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('analyze-website', {
-        body: {
-          url
-        }
+      const { data, error } = await supabase.functions.invoke('analyze-website', {
+        body: { url }
       });
+
       if (error) {
         throw new Error(error.message || 'Analysis failed');
       }
+
       if (data.error) {
         throw new Error(data.error);
       }
+
       setAnalysisResult(data);
       toast.success(`Analysis complete! Found ${data.improvements?.length || 0} improvement suggestions.`);
     } catch (error) {
@@ -37,44 +46,56 @@ const Index = () => {
       setIsLoading(false);
     }
   };
+
   const handleReset = () => {
     setAnalysisResult(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  return <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container py-4 flex items-center justify-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-coral via-electric to-sunny flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-fredoka font-bold">ScanIQ</h1>
-          </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container py-8 md:py-12">
-        <div className="space-y-8">
-          {/* Hero Section */}
-          {!analysisResult && !isLoading && <div className="text-center mb-8 animate-fade-up">
-              <h2 className="text-3xl md:text-4xl font-fredoka font-bold mb-4 bg-gradient-to-r from-coral via-electric to-sunny bg-clip-text text-transparent">Ready to analyze your website?</h2>
-              <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                Get AI-powered recommendations to improve visual design, usability, accessibility, and performance
-              </p>
-            </div>}
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-20">
+          <LoadingState />
+        </main>
+      </div>
+    );
+  }
 
-          {/* URL Input */}
-          {!analysisResult && <UrlInput onAnalyze={handleAnalyze} isLoading={isLoading} />}
+  // Show results
+  if (analysisResult) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-8">
+          <ResultsDashboard result={analysisResult} onReset={handleReset} />
+        </main>
+      </div>
+    );
+  }
 
-          {/* States */}
-          {isLoading && <LoadingState />}
-          
-          {!isLoading && !analysisResult && <EmptyState />}
-          
-          {analysisResult && <ResultsDashboard result={analysisResult} onReset={handleReset} />}
-        </div>
+  // Show landing page
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <HeroSection onAnalyze={handleAnalyze} isLoading={isLoading} />
+        <FeaturesSection />
+        <AICapabilitiesSection />
+        <IntegrationsSection />
+        <RolesSection />
+        <UseCasesSection />
+        <BottomCTA onAnalyze={handleAnalyze} isLoading={isLoading} />
       </main>
-    </div>;
+      <footer className="py-8 border-t border-border">
+        <div className="container text-center text-sm text-muted-foreground">
+          © 2024 ScanIQ. All rights reserved.
+        </div>
+      </footer>
+    </div>
+  );
 };
+
 export default Index;
