@@ -15,10 +15,7 @@ interface ResultsDashboardProps {
   onReset: () => void;
 }
 
-export const ResultsDashboard = ({
-  result,
-  onReset
-}: ResultsDashboardProps) => {
+export const ResultsDashboard = ({ result, onReset }: ResultsDashboardProps) => {
   const [activePriority, setActivePriority] = useState<Priority | 'all'>('all');
   const [activeMainTab, setActiveMainTab] = useState<string>('agents');
   const [enrichments, setEnrichments] = useState<AgentEnrichment[]>([]);
@@ -43,71 +40,68 @@ export const ResultsDashboard = ({
     <div className="space-y-8">
       <ScoreCard result={result} />
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <TabsList className="bg-muted/50 p-1 rounded-xl">
-              <TabsTrigger 
-                value="agents" 
-                className="data-[state=active]:bg-electric data-[state=active]:text-white rounded-lg px-4"
-              >
-                <Bot className="w-4 h-4 mr-2" />
-                AI Agents
-              </TabsTrigger>
-              <TabsTrigger 
-                value="roadmap" 
-                className="data-[state=active]:bg-electric data-[state=active]:text-white rounded-lg px-4"
-              >
-                <Map className="w-4 h-4 mr-2" />
-                Improvement Roadmap
-              </TabsTrigger>
-            </TabsList>
+      <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <TabsList className="bg-muted p-1 rounded-xl">
+            <TabsTrigger 
+              value="agents" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4"
+            >
+              <Bot className="w-4 h-4 mr-2" />
+              AI Agents
+            </TabsTrigger>
+            <TabsTrigger 
+              value="roadmap" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4"
+            >
+              <Map className="w-4 h-4 mr-2" />
+              Improvement Roadmap
+            </TabsTrigger>
+          </TabsList>
 
-            <Button variant="outline" onClick={onReset} className="rounded-xl hover-bounce">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Analyze Another
-            </Button>
+          <Button variant="outline" onClick={onReset} className="rounded-xl">
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Analyze Another
+          </Button>
+        </div>
+
+        <TabsContent value="agents" className="space-y-8">
+          <AIAgentsTable 
+            websiteContent={result.summary}
+            url={result.url}
+            onEnrichmentComplete={handleEnrichmentComplete}
+          />
+          
+          {enrichments.length > 0 && (
+            <AgentEnrichmentTabs enrichments={enrichments} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="roadmap" className="space-y-6">
+          <PriorityTabs 
+            activePriority={activePriority} 
+            onPriorityChange={setActivePriority} 
+            counts={counts} 
+          />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {filteredImprovements.map((improvement, index) => (
+              <ImprovementCard 
+                key={improvement.id} 
+                improvement={improvement} 
+                index={index} 
+                screenshot={result.screenshot} 
+              />
+            ))}
           </div>
 
-          <TabsContent value="agents" className="space-y-8">
-            <AIAgentsTable 
-              websiteContent={result.summary}
-              url={result.url}
-              onEnrichmentComplete={handleEnrichmentComplete}
-            />
-            
-            {enrichments.length > 0 && (
-              <AgentEnrichmentTabs enrichments={enrichments} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="roadmap" className="space-y-6">
-            <PriorityTabs 
-              activePriority={activePriority} 
-              onPriorityChange={setActivePriority} 
-              counts={counts} 
-            />
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {filteredImprovements.map((improvement, index) => (
-                <ImprovementCard 
-                  key={improvement.id} 
-                  improvement={improvement} 
-                  index={index} 
-                  screenshot={result.screenshot} 
-                />
-              ))}
+          {filteredImprovements.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No issues in this priority level.</p>
             </div>
-
-            {filteredImprovements.length === 0 && (
-              <div className="text-center py-12">
-                <span className="text-4xl mb-4 block">🎉</span>
-                <p className="text-muted-foreground">No issues in this priority level!</p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

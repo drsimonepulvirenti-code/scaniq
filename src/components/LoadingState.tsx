@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const messages = [
   "Fetching website content...",
@@ -22,26 +23,18 @@ export const LoadingState = () => {
 
   return (
     <div className="flex flex-col items-center justify-center py-20 animate-fade-up">
-      <div className="relative w-32 h-32 mb-8">
-        {/* Outer ring */}
+      <div className="relative w-24 h-24 mb-8">
         <div className="absolute inset-0 rounded-full border-4 border-muted" />
-        
-        {/* Animated ring */}
-        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-coral border-r-electric animate-spin" 
-          style={{ animationDuration: '1.5s' }} 
+        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" 
+          style={{ animationDuration: '1s' }} 
         />
-        
-        {/* Inner glow */}
-        <div className="absolute inset-4 rounded-full bg-gradient-to-br from-coral/20 via-electric/20 to-sunny/20 animate-pulse-soft" />
-        
-        {/* Center icon */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl animate-bounce" style={{ animationDuration: '2s' }}>✨</span>
+          <Loader2 className="w-8 h-8 text-primary animate-pulse" />
         </div>
       </div>
 
-      <h3 className="text-xl font-fredoka font-semibold mb-2">Analyzing Website</h3>
-      <p className="text-muted-foreground animate-pulse-soft" key={messageIndex}>
+      <h3 className="text-xl font-semibold mb-2">Analyzing Website</h3>
+      <p className="text-muted-foreground animate-pulse" key={messageIndex}>
         {messages[messageIndex]}
       </p>
     </div>

@@ -40,63 +40,63 @@ export const CATEGORIES: CategoryInfo[] = [
     id: 'visual_design', 
     label: 'Visual Design', 
     icon: '🎨',
-    colorClass: 'text-coral',
-    bgClass: 'bg-coral/10 border-coral/30',
+    colorClass: 'text-brand-purple',
+    bgClass: 'bg-[hsl(262,83%,95%)] border-[hsl(262,83%,80%)]',
   },
   { 
     id: 'usability', 
     label: 'Usability', 
     icon: '🧭',
-    colorClass: 'text-electric',
-    bgClass: 'bg-electric/10 border-electric/30',
+    colorClass: 'text-primary',
+    bgClass: 'bg-[hsl(217,91%,95%)] border-[hsl(217,91%,80%)]',
   },
   { 
     id: 'accessibility', 
     label: 'Accessibility', 
     icon: '♿',
-    colorClass: 'text-sunny',
-    bgClass: 'bg-sunny/10 border-sunny/30',
+    colorClass: 'text-brand-orange',
+    bgClass: 'bg-[hsl(25,95%,95%)] border-[hsl(25,95%,80%)]',
   },
   { 
     id: 'performance', 
     label: 'Performance', 
     icon: '⚡',
-    colorClass: 'text-teal',
-    bgClass: 'bg-teal/10 border-teal/30',
+    colorClass: 'text-brand-green',
+    bgClass: 'bg-[hsl(160,84%,95%)] border-[hsl(160,84%,80%)]',
   },
 ];
 
 export const PRIORITY_CONFIG = {
-  high: { label: 'High Priority', colorClass: 'bg-coral text-primary-foreground' },
-  medium: { label: 'Medium Priority', colorClass: 'bg-electric text-primary-foreground' },
-  low: { label: 'Low Priority', colorClass: 'bg-teal text-primary-foreground' },
+  high: { label: 'High Priority', colorClass: 'bg-destructive text-destructive-foreground' },
+  medium: { label: 'Medium Priority', colorClass: 'bg-primary text-primary-foreground' },
+  low: { label: 'Low Priority', colorClass: 'bg-brand-green text-primary-foreground' },
 };
 
 export const SCORE_DESCRIPTIONS = {
   excellent: { 
     label: 'Excellent', 
     description: 'Outstanding UX/UI! The website follows best practices with minimal issues.',
-    colorClass: 'text-teal'
+    colorClass: 'text-brand-green'
   },
   good: { 
     label: 'Good', 
     description: 'Solid foundation with room for improvement. Address high-priority issues first.',
-    colorClass: 'text-electric'
+    colorClass: 'text-primary'
   },
   average: { 
     label: 'Average', 
     description: 'Several areas need attention. Focus on usability and visual consistency.',
-    colorClass: 'text-sunny'
+    colorClass: 'text-brand-orange'
   },
   needsWork: { 
     label: 'Needs Work', 
     description: 'Significant improvements required. Prioritize accessibility and core usability.',
-    colorClass: 'text-coral'
+    colorClass: 'text-destructive'
   },
   poor: { 
     label: 'Poor', 
     description: 'Major UX/UI overhaul recommended. Consider a comprehensive redesign.',
-    colorClass: 'text-coral'
+    colorClass: 'text-destructive'
   },
 };
 

@@ -3,18 +3,21 @@ import { cn } from '@/lib/utils';
 import { Improvement, CATEGORIES, PRIORITY_CONFIG } from '@/types/analysis';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp, Eye, TrendingUp, MapPin } from 'lucide-react';
+
 interface ImprovementCardProps {
   improvement: Improvement;
   index: number;
   screenshot?: string;
 }
+
 const getBenefitColor = (benefit: number) => {
-  if (benefit >= 90) return 'text-green-600 bg-green-100';
-  if (benefit >= 70) return 'text-teal-600 bg-teal-100';
-  if (benefit >= 50) return 'text-blue-600 bg-blue-100';
-  if (benefit >= 30) return 'text-amber-600 bg-amber-100';
+  if (benefit >= 90) return 'text-[hsl(160,84%,39%)] bg-[hsl(160,84%,95%)]';
+  if (benefit >= 70) return 'text-[hsl(160,84%,39%)] bg-[hsl(160,84%,95%)]';
+  if (benefit >= 50) return 'text-primary bg-[hsl(217,91%,95%)]';
+  if (benefit >= 30) return 'text-[hsl(25,95%,53%)] bg-[hsl(25,95%,95%)]';
   return 'text-muted-foreground bg-muted';
 };
+
 const getBenefitLabel = (benefit: number) => {
   if (benefit >= 90) return 'Critical Impact';
   if (benefit >= 70) return 'High Impact';
@@ -22,23 +25,26 @@ const getBenefitLabel = (benefit: number) => {
   if (benefit >= 30) return 'Low Impact';
   return 'Minor Polish';
 };
-export const ImprovementCard = ({
-  improvement,
-  index,
-  screenshot
-}: ImprovementCardProps) => {
+
+export const ImprovementCard = ({ improvement, index, screenshot }: ImprovementCardProps) => {
   const [showScreenshot, setShowScreenshot] = useState(false);
   const category = CATEGORIES.find(c => c.id === improvement.category);
   const priority = PRIORITY_CONFIG[improvement.priority];
   const benefitColor = getBenefitColor(improvement.estimatedBenefit);
-  return <div className={cn('bg-card rounded-2xl p-6 border-2 shadow-card hover-bounce cursor-default animate-fade-up', category?.bgClass)} style={{
-    animationDelay: `${index * 100}ms`
-  }}>
+
+  return (
+    <div 
+      className={cn(
+        'bg-card rounded-2xl p-6 border shadow-soft hover:shadow-card transition-shadow animate-fade-up',
+        category?.bgClass
+      )} 
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{category?.icon}</span>
-          <div className="">
-            <h4 className="font-fredoka font-semibold text-lg leading-tight">
+          <div>
+            <h4 className="font-semibold text-lg leading-tight">
               {improvement.title}
             </h4>
             <span className={cn('text-sm', category?.colorClass)}>
@@ -46,11 +52,14 @@ export const ImprovementCard = ({
             </span>
           </div>
         </div>
-        <div className="items-end gap-2 flex flex-row">
+        <div className="flex items-end gap-2 flex-row">
           <Badge className={cn('shrink-0', priority.colorClass)}>
             {improvement.priority}
           </Badge>
-          <div className={cn('flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold', benefitColor)}>
+          <div className={cn(
+            'flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium',
+            benefitColor
+          )}>
             <TrendingUp className="w-3 h-3" />
             <span>{improvement.estimatedBenefit}%</span>
             <span className="hidden sm:inline">• {getBenefitLabel(improvement.estimatedBenefit)}</span>
@@ -62,10 +71,10 @@ export const ImprovementCard = ({
         {improvement.description}
       </p>
 
-      {/* Element Location */}
-      {improvement.elementLocation && <div className="bg-muted/30 rounded-xl p-3 mb-4 border border-border/50">
+      {improvement.elementLocation && (
+        <div className="bg-muted/50 rounded-xl p-3 mb-4 border border-border">
           <div className="flex items-start gap-2">
-            <MapPin className="w-4 h-4 text-coral mt-0.5 shrink-0" />
+            <MapPin className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
             <div className="text-sm">
               <span className="font-medium text-foreground">
                 {improvement.elementLocation.section}
@@ -79,31 +88,41 @@ export const ImprovementCard = ({
               </p>
             </div>
           </div>
-        </div>}
+        </div>
+      )}
 
-      <div className="bg-background/50 rounded-xl p-4 border border-border">
+      <div className="bg-muted/30 rounded-xl p-4 border border-border">
         <p className="text-sm font-medium mb-1">💡 Recommendation</p>
         <p className="text-sm text-muted-foreground">
           {improvement.recommendation}
         </p>
       </div>
 
-      {/* Screenshot Section */}
-      {screenshot && improvement.elementLocation && <div className="mt-4">
-          <button onClick={() => setShowScreenshot(!showScreenshot)} className={cn('flex items-center gap-2 text-sm font-medium transition-colors', category?.colorClass, 'hover:opacity-80')}>
+      {screenshot && improvement.elementLocation && (
+        <div className="mt-4">
+          <button
+            onClick={() => setShowScreenshot(!showScreenshot)}
+            className={cn(
+              'flex items-center gap-2 text-sm font-medium transition-colors text-primary hover:opacity-80'
+            )}
+          >
             <Eye className="w-4 h-4" />
             {showScreenshot ? 'Hide Page Screenshot' : 'View Full Page'}
             {showScreenshot ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
-          
-          {showScreenshot && <div className="mt-3 space-y-2 animate-fade-up">
+
+          {showScreenshot && (
+            <div className="mt-3 space-y-2 animate-fade-up">
               <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-lg">
                 📍 Look for: <strong>{improvement.elementLocation.section}</strong> → <strong>{improvement.elementLocation.element}</strong>
               </p>
-              <div className="rounded-xl overflow-hidden border-2 border-border shadow-lg">
+              <div className="rounded-xl overflow-hidden border border-border shadow-soft">
                 <img src={screenshot} alt="Website screenshot" className="w-full h-auto" />
               </div>
-            </div>}
-        </div>}
-    </div>;
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };

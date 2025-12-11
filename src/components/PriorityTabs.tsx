@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Priority, PRIORITY_CONFIG } from '@/types/analysis';
+import { Priority } from '@/types/analysis';
 
 interface PriorityTabsProps {
   activePriority: Priority | 'all';
@@ -8,11 +8,11 @@ interface PriorityTabsProps {
 }
 
 export const PriorityTabs = ({ activePriority, onPriorityChange, counts }: PriorityTabsProps) => {
-  const tabs: Array<{ id: Priority | 'all'; label: string; color: string }> = [
-    { id: 'all', label: 'All', color: 'bg-foreground text-background' },
-    { id: 'high', label: 'High', color: 'bg-coral text-primary-foreground' },
-    { id: 'medium', label: 'Medium', color: 'bg-electric text-primary-foreground' },
-    { id: 'low', label: 'Low', color: 'bg-teal text-primary-foreground' },
+  const tabs: Array<{ id: Priority | 'all'; label: string; activeClass: string }> = [
+    { id: 'all', label: 'All', activeClass: 'bg-foreground text-background' },
+    { id: 'high', label: 'High', activeClass: 'bg-destructive text-destructive-foreground' },
+    { id: 'medium', label: 'Medium', activeClass: 'bg-primary text-primary-foreground' },
+    { id: 'low', label: 'Low', activeClass: 'bg-brand-green text-primary-foreground' },
   ];
 
   return (
@@ -22,10 +22,10 @@ export const PriorityTabs = ({ activePriority, onPriorityChange, counts }: Prior
           key={tab.id}
           onClick={() => onPriorityChange(tab.id)}
           className={cn(
-            'px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover-bounce',
+            'px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200',
             activePriority === tab.id
-              ? tab.color
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              ? tab.activeClass
+              : 'bg-muted text-muted-foreground hover:bg-accent'
           )}
         >
           {tab.label}
