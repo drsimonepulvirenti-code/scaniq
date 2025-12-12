@@ -1,4 +1,5 @@
 import { UrlInput } from '@/components/UrlInput';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface BottomCTAProps {
   onAnalyze: (url: string) => void;
@@ -6,6 +7,8 @@ interface BottomCTAProps {
 }
 
 export const BottomCTA = ({ onAnalyze, isLoading }: BottomCTAProps) => {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 md:py-32 gradient-section">
       <div className="container">
@@ -13,12 +16,10 @@ export const BottomCTA = ({ onAnalyze, isLoading }: BottomCTAProps) => {
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Ready to boost{' '}
-                <span className="text-gradient">something amazing?</span>
+                {t.bottomCta.title}{' '}
+                <span className="text-gradient">{t.bottomCta.titleHighlight}</span>
               </h2>
-              <p className="text-muted-foreground">
-                Try ScanIQ for free and get instant feedback on your website.
-              </p>
+              <p className="text-muted-foreground">{t.bottomCta.description}</p>
             </div>
             
             <div>

@@ -6,30 +6,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
-
-const LANGUAGES = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'it', label: 'Italiano', flag: '🇮🇹' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'pt', label: 'Português', flag: '🇵🇹' },
-  { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
-  { code: 'pl', label: 'Polski', flag: '🇵🇱' },
-  { code: 'sv', label: 'Svenska', flag: '🇸🇪' },
-  { code: 'da', label: 'Dansk', flag: '🇩🇰' },
-  { code: 'no', label: 'Norsk', flag: '🇳🇴' },
-  { code: 'fi', label: 'Suomi', flag: '🇫🇮' },
-  { code: 'el', label: 'Ελληνικά', flag: '🇬🇷' },
-  { code: 'cs', label: 'Čeština', flag: '🇨🇿' },
-  { code: 'ro', label: 'Română', flag: '🇷🇴' },
-  { code: 'hu', label: 'Magyar', flag: '🇭🇺' },
-  { code: 'uk', label: 'Українська', flag: '🇺🇦' },
-];
+import { useLanguage, LANGUAGES } from '@/i18n/LanguageContext';
 
 export const Header = () => {
-  const [currentLanguage, setCurrentLanguage] = useState(LANGUAGES[0]);
+  const { currentLanguage, setLanguage, t } = useLanguage();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -43,10 +23,10 @@ export const Header = () => {
           </a>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Features
+              {t.header.features}
             </a>
             <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
+              {t.header.pricing}
             </a>
           </nav>
         </div>
@@ -64,7 +44,7 @@ export const Header = () => {
               {LANGUAGES.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
-                  onClick={() => setCurrentLanguage(lang)}
+                  onClick={() => setLanguage(lang)}
                   className="flex items-center gap-2 cursor-pointer"
                 >
                   <span>{lang.flag}</span>
@@ -75,10 +55,10 @@ export const Header = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="ghost" size="sm">
-            Log in
+            {t.header.login}
           </Button>
           <Button size="sm">
-            Get started
+            {t.header.getStarted}
           </Button>
         </div>
       </div>
