@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowRight, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface UrlInputProps {
   onAnalyze: (url: string) => void;
@@ -10,6 +11,7 @@ interface UrlInputProps {
 
 export const UrlInput = ({ onAnalyze, isLoading }: UrlInputProps) => {
   const [url, setUrl] = useState('');
+  const { t } = useLanguage();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +34,7 @@ export const UrlInput = ({ onAnalyze, isLoading }: UrlInputProps) => {
             onChange={(e) => setUrl(e.target.value)}
             className="h-12 px-4 rounded-xl bg-background border-border text-base"
             disabled={isLoading}
-            placeholder="Enter your website URL..."
+            placeholder={t.urlInput.placeholder}
           />
         </div>
         <Button
@@ -43,11 +45,11 @@ export const UrlInput = ({ onAnalyze, isLoading }: UrlInputProps) => {
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Analyzing...
+              {t.urlInput.analyzing}
             </>
           ) : (
             <>
-              Start analysis
+              {t.urlInput.startAnalysis}
               <ArrowRight className="w-4 h-4" />
             </>
           )}

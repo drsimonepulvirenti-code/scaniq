@@ -1,32 +1,23 @@
 import { Palette, Search, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-
-const capabilities = [
-  {
-    icon: Palette,
-    title: 'AI Performance',
-    description: 'Analyze visual hierarchy, color contrast, and design consistency automatically.',
-  },
-  {
-    icon: Search,
-    title: 'SEO',
-    description: 'Optimize for search engines with AI-powered recommendations and audits.',
-  },
-  {
-    icon: Zap,
-    title: 'Performance',
-    description: 'Identify bottlenecks and optimize loading speed for better user experience.',
-  },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export const AICapabilitiesSection = () => {
+  const { t } = useLanguage();
+
+  const capabilities = [
+    { icon: Palette, title: t.aiCapabilities.aiPerformance, description: t.aiCapabilities.aiPerformanceDesc },
+    { icon: Search, title: t.aiCapabilities.seo, description: t.aiCapabilities.seoDesc },
+    { icon: Zap, title: t.aiCapabilities.performance, description: t.aiCapabilities.performanceDesc },
+  ];
+
   return (
     <section className="py-20 md:py-32 gradient-section">
       <div className="container">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Empower your product with{' '}
-            <span className="text-gradient">the most powerful AI team</span>
+            {t.aiCapabilities.title}{' '}
+            <span className="text-gradient">{t.aiCapabilities.titleHighlight}</span>
           </h2>
         </div>
         

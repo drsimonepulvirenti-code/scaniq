@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Figma, Github } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const integrations = [
   { name: 'Figma', icon: Figma },
@@ -9,6 +10,8 @@ const integrations = [
 ];
 
 export const IntegrationsSection = () => {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 md:py-32">
       <div className="container">
@@ -16,16 +19,11 @@ export const IntegrationsSection = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Tuning feedback with{' '}
-                <span className="text-gradient">your knowledge</span>
+                {t.integrations.title}{' '}
+                <span className="text-gradient">{t.integrations.titleHighlight}</span>
               </h2>
-              <p className="text-muted-foreground mb-6">
-                Seamlessly integrate with the tools you already use. Connect your design files, 
-                documentation, and analytics for deeper insights.
-              </p>
-              <Button variant="outline">
-                See all integrations
-              </Button>
+              <p className="text-muted-foreground mb-6">{t.integrations.description}</p>
+              <Button variant="outline">{t.integrations.seeAll}</Button>
             </div>
             
             <div className="grid grid-cols-2 gap-4">

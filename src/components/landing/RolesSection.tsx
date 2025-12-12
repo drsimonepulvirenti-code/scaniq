@@ -1,29 +1,22 @@
 import { Code, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-
-const roles = [
-  {
-    icon: Code,
-    title: 'Founders',
-    description: 'Launch faster with AI-guided product decisions. Understand what matters most to your users.',
-    benefits: ['AI-Powered Decisions', 'Performance Insights', 'User Behavior Analysis'],
-  },
-  {
-    icon: Users,
-    title: 'Product Managers',
-    description: 'Make data-driven decisions and prioritize features that drive the biggest impact.',
-    benefits: ['AI-Powered Prioritization', 'Feature Roadmapping', 'User Feedback Analysis'],
-  },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export const RolesSection = () => {
+  const { t } = useLanguage();
+
+  const roles = [
+    { icon: Code, title: t.roles.founders, description: t.roles.foundersDesc, benefits: t.roles.foundersBenefits },
+    { icon: Users, title: t.roles.productManagers, description: t.roles.productManagersDesc, benefits: t.roles.productManagersBenefits },
+  ];
+
   return (
     <section className="py-20 md:py-32 gradient-section">
       <div className="container">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold">
-            Whatever your role, ScanIQ{' '}
-            <span className="text-gradient">gives your priorities</span>
+            {t.roles.title}{' '}
+            <span className="text-gradient">{t.roles.titleHighlight}</span>
           </h2>
         </div>
         
