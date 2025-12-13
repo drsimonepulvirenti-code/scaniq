@@ -7,6 +7,8 @@ import { LanguageProvider } from "@/i18n/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Scan from "./pages/Scan";
+import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/scan" element={<Scan />} />
+              <Route path="/results/:url" element={<Results />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
