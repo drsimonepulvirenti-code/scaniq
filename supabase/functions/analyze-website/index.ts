@@ -193,9 +193,21 @@ IMPORTANT: Return ONLY the JSON object, no additional text.`;
     if (!scrapeResponse.ok) {
       const errorText = await scrapeResponse.text();
       console.error('Firecrawl error:', errorText);
+      
+      // Try to parse the error for a better message
+      let errorMessage = 'Failed to fetch website';
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch {
+        // Use default message
+      }
+      
       return new Response(
-        JSON.stringify({ error: `Failed to fetch website: ${scrapeResponse.status}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: errorMessage }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
