@@ -18,6 +18,8 @@ export interface Translations {
     placeholder: string;
     analyzing: string;
     startAnalysis: string;
+    invalidUrl: string;
+    invalidUrlDescription: string;
   };
   features: {
     title: string;
@@ -93,6 +95,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Enter your website URL...',
       analyzing: 'Analyzing...',
       startAnalysis: 'Start analysis',
+      invalidUrl: 'Invalid URL',
+      invalidUrlDescription: 'Please enter a valid URL (e.g., example.com)',
     },
     features: {
       title: 'Everything you need',
@@ -166,6 +170,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Website-URL eingeben...',
       analyzing: 'Analysiere...',
       startAnalysis: 'Analyse starten',
+      invalidUrl: 'Ungültige URL',
+      invalidUrlDescription: 'Bitte geben Sie eine gültige URL ein (z.B. beispiel.de)',
     },
     features: {
       title: 'Alles was Sie brauchen',
@@ -239,6 +245,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Entrez l\'URL de votre site...',
       analyzing: 'Analyse en cours...',
       startAnalysis: 'Démarrer l\'analyse',
+      invalidUrl: 'URL invalide',
+      invalidUrlDescription: 'Veuillez entrer une URL valide (ex. exemple.fr)',
     },
     features: {
       title: 'Tout ce dont vous avez besoin',
@@ -312,6 +320,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Inserisci l\'URL del tuo sito...',
       analyzing: 'Analisi in corso...',
       startAnalysis: 'Avvia analisi',
+      invalidUrl: 'URL non valida',
+      invalidUrlDescription: 'Inserisci un URL valido (es. esempio.it)',
     },
     features: {
       title: 'Tutto ciò di cui hai bisogno',
@@ -385,6 +395,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Introduce la URL de tu sitio...',
       analyzing: 'Analizando...',
       startAnalysis: 'Iniciar análisis',
+      invalidUrl: 'URL no válida',
+      invalidUrlDescription: 'Por favor, introduce una URL válida (ej. ejemplo.es)',
     },
     features: {
       title: 'Todo lo que necesitas',
@@ -458,6 +470,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Insira o URL do seu site...',
       analyzing: 'Analisando...',
       startAnalysis: 'Iniciar análise',
+      invalidUrl: 'URL inválido',
+      invalidUrlDescription: 'Por favor, insira um URL válido (ex. exemplo.pt)',
     },
     features: {
       title: 'Tudo o que precisa',
@@ -531,6 +545,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Voer je website URL in...',
       analyzing: 'Analyseren...',
       startAnalysis: 'Start analyse',
+      invalidUrl: 'Ongeldige URL',
+      invalidUrlDescription: 'Voer een geldige URL in (bijv. voorbeeld.nl)',
     },
     features: {
       title: 'Alles wat je nodig hebt',
@@ -604,6 +620,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Wprowadź URL swojej strony...',
       analyzing: 'Analizowanie...',
       startAnalysis: 'Rozpocznij analizę',
+      invalidUrl: 'Nieprawidłowy URL',
+      invalidUrlDescription: 'Wprowadź prawidłowy URL (np. przyklad.pl)',
     },
     features: {
       title: 'Wszystko czego potrzebujesz',
@@ -677,6 +695,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Ange din webbadress...',
       analyzing: 'Analyserar...',
       startAnalysis: 'Starta analys',
+      invalidUrl: 'Ogiltig URL',
+      invalidUrlDescription: 'Ange en giltig URL (t.ex. exempel.se)',
     },
     features: {
       title: 'Allt du behöver',
@@ -750,6 +770,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Indtast din hjemmesides URL...',
       analyzing: 'Analyserer...',
       startAnalysis: 'Start analyse',
+      invalidUrl: 'Ugyldig URL',
+      invalidUrlDescription: 'Indtast venligst en gyldig URL (f.eks. eksempel.dk)',
     },
     features: {
       title: 'Alt hvad du behøver',
@@ -823,6 +845,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Skriv inn nettstedets URL...',
       analyzing: 'Analyserer...',
       startAnalysis: 'Start analyse',
+      invalidUrl: 'Ugyldig URL',
+      invalidUrlDescription: 'Vennligst skriv inn en gyldig URL (f.eks. eksempel.no)',
     },
     features: {
       title: 'Alt du trenger',
@@ -896,6 +920,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Anna verkkosivustosi URL...',
       analyzing: 'Analysoidaan...',
       startAnalysis: 'Aloita analyysi',
+      invalidUrl: 'Virheellinen URL',
+      invalidUrlDescription: 'Anna kelvollinen URL (esim. esimerkki.fi)',
     },
     features: {
       title: 'Kaikki mitä tarvitset',
@@ -969,6 +995,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Εισάγετε το URL του ιστότοπού σας...',
       analyzing: 'Ανάλυση...',
       startAnalysis: 'Έναρξη ανάλυσης',
+      invalidUrl: 'Μη έγκυρο URL',
+      invalidUrlDescription: 'Εισάγετε ένα έγκυρο URL (π.χ. paradeigma.gr)',
     },
     features: {
       title: 'Όλα όσα χρειάζεστε',
@@ -1042,6 +1070,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Zadejte URL vašeho webu...',
       analyzing: 'Analyzuji...',
       startAnalysis: 'Spustit analýzu',
+      invalidUrl: 'Neplatná URL',
+      invalidUrlDescription: 'Zadejte platnou URL (např. priklad.cz)',
     },
     features: {
       title: 'Vše, co potřebujete',
@@ -1115,6 +1145,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Introdu URL-ul site-ului tău...',
       analyzing: 'Se analizează...',
       startAnalysis: 'Începe analiza',
+      invalidUrl: 'URL invalid',
+      invalidUrlDescription: 'Introdu un URL valid (ex. exemplu.ro)',
     },
     features: {
       title: 'Tot ce ai nevoie',
@@ -1188,6 +1220,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Add meg a webhelyed URL-jét...',
       analyzing: 'Elemzés...',
       startAnalysis: 'Elemzés indítása',
+      invalidUrl: 'Érvénytelen URL',
+      invalidUrlDescription: 'Adj meg egy érvényes URL-t (pl. pelda.hu)',
     },
     features: {
       title: 'Minden, amire szükséged van',
@@ -1261,6 +1295,8 @@ export const translations: Record<LanguageCode, Translations> = {
       placeholder: 'Введіть URL вашого сайту...',
       analyzing: 'Аналізуємо...',
       startAnalysis: 'Почати аналіз',
+      invalidUrl: 'Недійсна URL-адреса',
+      invalidUrlDescription: 'Введіть дійсну URL-адресу (напр. priklad.ua)',
     },
     features: {
       title: 'Все, що вам потрібно',
