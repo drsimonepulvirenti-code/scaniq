@@ -2,3 +2,9 @@ project_id = "lrshsyvxykhpnoeksvbn"
 
 [functions.analyze-website]
 verify_jwt = false
+
+[functions.scrape-website]
+verify_jwt = false
+
+[functions.generate-objectives]
+verify_jwt = false

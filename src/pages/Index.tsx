@@ -12,8 +12,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   const handleAnalyze = (url: string) => {
-    // Navigate to scan page with the URL pre-filled
-    navigate('/scan', { state: { url } });
+    // Navigate to onboarding with the URL pre-filled
+    navigate('/onboarding', { state: { url } });
   };
 
   return (
