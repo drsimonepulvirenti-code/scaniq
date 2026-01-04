@@ -22,12 +22,22 @@ export const OnboardingStep0 = ({
   const [inputUrl, setInputUrl] = useState(url);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
+  // Sync inputUrl when URL prop changes (from homepage navigation)
   useEffect(() => {
-    if (url && !isComplete) {
+    if (url && url !== inputUrl) {
+      setInputUrl(url);
+    }
+  }, [url]);
+
+  // Auto-start scraping if URL was passed from homepage
+  useEffect(() => {
+    if (url && !isComplete && !isLoading && !hasAutoStarted) {
+      setHasAutoStarted(true);
       handleScrape();
     }
-  }, []);
+  }, [url, isComplete, isLoading, hasAutoStarted]);
 
   const formatUrl = (input: string): string => {
     let formatted = input.trim();

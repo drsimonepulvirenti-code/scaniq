@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Globe, Loader2 } from 'lucide-react';
 import { ScrapedData } from '@/types/onboarding';
 
@@ -12,10 +13,21 @@ export const OnboardingPreview = ({
   scrapedData,
   isScrapingComplete,
 }: OnboardingPreviewProps) => {
-  const getScreenshotUrl = (url: string) => {
-    // Use a screenshot service for preview
-    const encodedUrl = encodeURIComponent(url);
-    return `https://image.thum.io/get/width/800/crop/600/noanimate/${encodedUrl}`;
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  // Reset loading state when URL changes
+  useEffect(() => {
+    if (url) {
+      setIsImageLoading(true);
+      setImageError(false);
+    }
+  }, [url]);
+
+  const getScreenshotUrl = (targetUrl: string) => {
+    // Use screenshot service for desktop preview
+    const encodedUrl = encodeURIComponent(targetUrl);
+    return `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodedUrl}`;
   };
 
   if (!url) {
@@ -53,24 +65,44 @@ export const OnboardingPreview = ({
           </div>
         </div>
 
-        {/* Preview content */}
+        {/* Preview content - Desktop screenshot */}
         <div className="relative bg-background" style={{ height: 'calc(100vh - 220px)' }}>
-          {!isScrapingComplete ? (
-            <div className="absolute inset-0 flex items-center justify-center">
+          {/* Show loading state while fetching screenshot */}
+          {(isImageLoading || !url) && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Loading preview...</p>
+                <p className="text-sm text-muted-foreground">
+                  {url ? 'Generating desktop preview...' : 'Waiting for URL...'}
+                </p>
               </div>
             </div>
-          ) : (
+          )}
+          
+          {/* Screenshot image - starts loading as soon as URL is available */}
+          {url && (
             <img
               src={getScreenshotUrl(url)}
-              alt="Website preview"
-              className="w-full h-full object-cover object-top"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/placeholder.svg';
+              alt="Website desktop preview"
+              className={`w-full h-full object-cover object-top transition-opacity duration-300 ${
+                isImageLoading ? 'opacity-0' : 'opacity-100'
+              }`}
+              onLoad={() => setIsImageLoading(false)}
+              onError={() => {
+                setIsImageLoading(false);
+                setImageError(true);
               }}
             />
+          )}
+          
+          {/* Error state */}
+          {imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+              <div className="text-center">
+                <Globe className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">Could not load preview</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
