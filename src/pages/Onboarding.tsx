@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { OnboardingData, ScrapedData } from '@/types/onboarding';
 import { OnboardingStepper } from '@/components/onboarding/OnboardingStepper';
@@ -12,11 +12,18 @@ import { OnboardingPreview } from '@/components/onboarding/OnboardingPreview';
 const Onboarding = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Get initial URL from navigation state (from homepage) - do this synchronously
+  const initialUrl = useMemo(() => {
+    const state = location.state as { url?: string } | null;
+    return state?.url || '';
+  }, [location.state]);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isScrapingComplete, setIsScrapingComplete] = useState(false);
   
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    url: '',
+    url: initialUrl,
     scrapedData: null,
     context: '',
     selectedPersonas: [],
@@ -24,14 +31,6 @@ const Onboarding = () => {
     selectedAgents: [],
     workEmail: '',
   });
-
-  // Check if URL was passed from homepage
-  useEffect(() => {
-    const state = location.state as { url?: string } | null;
-    if (state?.url) {
-      setOnboardingData(prev => ({ ...prev, url: state.url || '' }));
-    }
-  }, [location.state]);
 
   const handleUrlSubmit = (url: string) => {
     setOnboardingData(prev => ({ ...prev, url }));
@@ -121,6 +120,7 @@ const Onboarding = () => {
       case 0:
         return (
           <OnboardingStep0
+            initialUrl={initialUrl}
             url={onboardingData.url}
             onUrlSubmit={handleUrlSubmit}
             onScrapingComplete={handleScrapingComplete}
