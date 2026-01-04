@@ -13,24 +13,36 @@ export const OnboardingPreview = ({
   scrapedData,
   isScrapingComplete,
 }: OnboardingPreviewProps) => {
-  const [isImageLoading, setIsImageLoading] = useState(true);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
 
-  // Reset loading state when URL changes
+  // Check if URL is valid for preview
+  const isValidUrl = (urlToCheck: string): boolean => {
+    if (!urlToCheck) return false;
+    try {
+      const parsed = new URL(urlToCheck);
+      return parsed.hostname.length > 0 && parsed.hostname.includes('.');
+    } catch {
+      return false;
+    }
+  };
+
+  // Generate screenshot URL when we have a valid URL
   useEffect(() => {
-    if (url) {
+    if (url && isValidUrl(url)) {
       setIsImageLoading(true);
       setImageError(false);
+      // Use screenshot service for desktop preview
+      const encodedUrl = encodeURIComponent(url);
+      setScreenshotUrl(`https://image.thum.io/get/width/1280/crop/800/noanimate/${encodedUrl}`);
+    } else {
+      setScreenshotUrl(null);
+      setIsImageLoading(false);
     }
   }, [url]);
 
-  const getScreenshotUrl = (targetUrl: string) => {
-    // Use screenshot service for desktop preview
-    const encodedUrl = encodeURIComponent(targetUrl);
-    return `https://image.thum.io/get/width/1280/crop/800/noanimate/${encodedUrl}`;
-  };
-
-  if (!url) {
+  if (!url || !isValidUrl(url)) {
     return (
       <div className="h-full flex items-center justify-center p-8">
         <div className="text-center">
@@ -67,22 +79,22 @@ export const OnboardingPreview = ({
 
         {/* Preview content - Desktop screenshot */}
         <div className="relative bg-background" style={{ height: 'calc(100vh - 220px)' }}>
-          {/* Show loading state while fetching screenshot */}
-          {(isImageLoading || !url) && !imageError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+          {/* Loading state */}
+          {isImageLoading && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  {url ? 'Generating desktop preview...' : 'Waiting for URL...'}
+                  Generating desktop preview...
                 </p>
               </div>
             </div>
           )}
           
-          {/* Screenshot image - starts loading as soon as URL is available */}
-          {url && (
+          {/* Screenshot image */}
+          {screenshotUrl && (
             <img
-              src={getScreenshotUrl(url)}
+              src={screenshotUrl}
               alt="Website desktop preview"
               className={`w-full h-full object-cover object-top transition-opacity duration-300 ${
                 isImageLoading ? 'opacity-0' : 'opacity-100'
@@ -100,7 +112,8 @@ export const OnboardingPreview = ({
             <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
               <div className="text-center">
                 <Globe className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Could not load preview</p>
+                <p className="text-sm text-muted-foreground">Preview unavailable</p>
+                <p className="text-xs text-muted-foreground mt-1">The screenshot service couldn't capture this page</p>
               </div>
             </div>
           )}

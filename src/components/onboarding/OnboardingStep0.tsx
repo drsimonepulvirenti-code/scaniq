@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Loader2, Check, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface OnboardingStep0Props {
+  initialUrl: string; // URL passed from homepage (stable reference)
   url: string;
   onUrlSubmit: (url: string) => void;
   onScrapingComplete: (data: ScrapedData) => void;
@@ -14,41 +15,48 @@ interface OnboardingStep0Props {
 }
 
 export const OnboardingStep0 = ({
+  initialUrl,
   url,
   onUrlSubmit,
   onScrapingComplete,
   isComplete,
 }: OnboardingStep0Props) => {
-  const [inputUrl, setInputUrl] = useState(url);
+  // Initialize with initialUrl (from homepage) or current url
+  const [inputUrl, setInputUrl] = useState(initialUrl || url || '');
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [hasAutoStarted, setHasAutoStarted] = useState(false);
+  const hasAutoStartedRef = useRef(false);
 
-  // Sync inputUrl when URL prop changes (from homepage navigation)
-  useEffect(() => {
-    if (url && url !== inputUrl) {
-      setInputUrl(url);
-    }
-  }, [url]);
-
-  // Auto-start scraping if URL was passed from homepage
-  useEffect(() => {
-    if (url && !isComplete && !isLoading && !hasAutoStarted) {
-      setHasAutoStarted(true);
-      handleScrape();
-    }
-  }, [url, isComplete, isLoading, hasAutoStarted]);
-
+  // Format URL to ensure it has a protocol
   const formatUrl = (input: string): string => {
     let formatted = input.trim();
+    if (!formatted) return '';
     if (!formatted.startsWith('http://') && !formatted.startsWith('https://')) {
       formatted = `https://${formatted}`;
     }
     return formatted;
   };
 
-  const handleScrape = async () => {
-    const formattedUrl = formatUrl(inputUrl);
+  // Check if URL is valid for scraping
+  const isValidUrl = (urlToCheck: string): boolean => {
+    if (!urlToCheck) return false;
+    const formatted = formatUrl(urlToCheck);
+    try {
+      const parsed = new URL(formatted);
+      // Must have a valid hostname (not just protocol)
+      return parsed.hostname.length > 0 && parsed.hostname.includes('.');
+    } catch {
+      return false;
+    }
+  };
+
+  const handleScrape = async (urlToScrape: string) => {
+    if (!isValidUrl(urlToScrape)) {
+      toast.error('Please enter a valid URL');
+      return;
+    }
+
+    const formattedUrl = formatUrl(urlToScrape);
     onUrlSubmit(formattedUrl);
     setIsLoading(true);
     setProgress(0);
@@ -91,6 +99,19 @@ export const OnboardingStep0 = ({
     }
   };
 
+  // Auto-start scraping if URL was passed from homepage
+  useEffect(() => {
+    if (initialUrl && isValidUrl(initialUrl) && !isComplete && !isLoading && !hasAutoStartedRef.current) {
+      hasAutoStartedRef.current = true;
+      setInputUrl(initialUrl);
+      handleScrape(initialUrl);
+    }
+  }, [initialUrl, isComplete]);
+
+  const handleManualScrape = () => {
+    handleScrape(inputUrl);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -115,7 +136,7 @@ export const OnboardingStep0 = ({
             />
           </div>
           <Button
-            onClick={handleScrape}
+            onClick={handleManualScrape}
             disabled={!inputUrl || isLoading || isComplete}
             className="h-12 px-6"
           >
