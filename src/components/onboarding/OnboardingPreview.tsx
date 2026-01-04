@@ -33,9 +33,10 @@ export const OnboardingPreview = ({
     if (url && isValidUrl(url)) {
       setIsImageLoading(true);
       setImageError(false);
-      // Use screenshot service for desktop preview
-      const encodedUrl = encodeURIComponent(url);
-      setScreenshotUrl(`https://image.thum.io/get/width/1280/crop/800/noanimate/${encodedUrl}`);
+      // Use WordPress mshots - reliable, free, no auth required
+      const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
+      const encodedUrl = encodeURIComponent(normalizedUrl);
+      setScreenshotUrl(`https://s0.wp.com/mshots/v1/${encodedUrl}?w=1280`);
     } else {
       setScreenshotUrl(null);
       setIsImageLoading(false);
