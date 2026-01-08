@@ -5,6 +5,7 @@ import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardPreview } from '@/components/dashboard/DashboardPreview';
 import { DashboardSummary } from '@/components/dashboard/DashboardSummary';
 import { KnowledgeBase } from '@/components/dashboard/KnowledgeBase';
+import { Experiments } from '@/components/dashboard/Experiments';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 
 type ViewType = 'projects' | 'journeys' | 'experiments' | 'intelligence';
@@ -155,6 +156,8 @@ const Dashboard = () => {
           <main className="flex-1 flex">
             {currentView === 'intelligence' ? (
               <KnowledgeBase />
+            ) : currentView === 'experiments' ? (
+              <Experiments />
             ) : (
               <>
                 {/* Main viewport with preview */}
