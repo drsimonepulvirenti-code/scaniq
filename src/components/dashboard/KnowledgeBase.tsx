@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileText, X, FileImage, File, ToggleLeft, ToggleRight, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { Upload, FileText, X, FileImage, File, ToggleLeft, ToggleRight, Loader2, CheckCircle, AlertCircle, Trash2, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useDropzone } from 'react-dropzone';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { DOCUMENT_TYPE_LABELS, ALLOWED_FILE_TYPES, DocumentType } from '@/types/knowledge';
+import { KBTestMode } from './KBTestMode';
 
 export const KnowledgeBase = () => {
   const { 
@@ -21,6 +22,7 @@ export const KnowledgeBase = () => {
   } = useKnowledgeBase();
 
   const [selectedType, setSelectedType] = useState<DocumentType>('other');
+  const [showTestMode, setShowTestMode] = useState(false);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     for (const file of acceptedFiles) {
@@ -71,12 +73,34 @@ export const KnowledgeBase = () => {
 
   const activeCount = documents.filter(d => d.is_active && d.processing_status === 'completed').length;
   const totalCount = documents.length;
+  const isKBReady = activeCount > 0;
+
+  // Show test mode
+  if (showTestMode) {
+    return (
+      <KBTestMode 
+        onBack={() => setShowTestMode(false)} 
+        isKBReady={isKBReady}
+        activeDocCount={activeCount}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Knowledge Base</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-2xl font-bold text-foreground">Knowledge Base</h2>
+            <Button 
+              onClick={() => setShowTestMode(true)}
+              disabled={!isKBReady}
+              className="gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              Test Knowledge Base
+            </Button>
+          </div>
           <p className="text-muted-foreground">
             Upload UX research, brand guidelines, and product documents. Active documents will be used by AI to enrich feedback analysis.
           </p>
