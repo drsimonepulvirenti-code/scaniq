@@ -6,37 +6,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Generate embeddings using Lovable AI
-async function generateEmbedding(text: string, apiKey: string): Promise<number[]> {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      input: text,
-      model: "text-embedding-3-small"
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Embedding API error:", response.status, errorText);
-    throw new Error(`Embedding API failed: ${response.status}`);
+// Simple keyword-based search (no embeddings required)
+function scoreChunkRelevance(chunk: string, query: string): number {
+  const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  const chunkLower = chunk.toLowerCase();
+  
+  let score = 0;
+  for (const word of queryWords) {
+    // Count occurrences
+    const regex = new RegExp(word, 'gi');
+    const matches = chunkLower.match(regex);
+    if (matches) {
+      score += matches.length;
+    }
   }
-
-  const data = await response.json();
-  return data.data[0].embedding;
+  
+  // Normalize by query length
+  return queryWords.length > 0 ? score / queryWords.length : 0;
 }
 
-// Similarity search using cosine similarity
-async function findSimilarChunks(
+// Find relevant chunks using keyword matching
+async function findRelevantChunks(
   supabase: any, 
-  queryEmbedding: number[], 
+  query: string, 
   userId: string,
-  limit = 5,
-  threshold = 0.3
+  limit = 5
 ) {
   // Get all active documents for this user
   const { data: docs, error: docsError } = await supabase
@@ -54,57 +48,30 @@ async function findSimilarChunks(
   const docIds = docs.map((d: any) => d.id);
   const docMap = Object.fromEntries(docs.map((d: any) => [d.id, d.name]));
 
-  // Get chunks with embeddings for these documents
+  // Get all chunks for these documents
   const { data: chunks, error: chunksError } = await supabase
     .from('knowledge_chunks')
-    .select('id, document_id, content, chunk_index, embedding')
-    .in('document_id', docIds)
-    .not('embedding', 'is', null);
+    .select('id, document_id, content, chunk_index')
+    .in('document_id', docIds);
 
   if (chunksError || !chunks?.length) {
-    console.log("No chunks with embeddings found");
+    console.log("No chunks found");
     return [];
   }
 
-  // Calculate cosine similarity for each chunk
-  const results = chunks.map((chunk: any) => {
-    let embedding: number[];
-    try {
-      embedding = typeof chunk.embedding === 'string' 
-        ? JSON.parse(chunk.embedding) 
-        : chunk.embedding;
-    } catch {
-      return null;
-    }
+  // Score each chunk
+  const scoredChunks = chunks.map((chunk: any) => ({
+    id: chunk.id,
+    document_id: chunk.document_id,
+    document_name: docMap[chunk.document_id],
+    content: chunk.content,
+    chunk_index: chunk.chunk_index,
+    score: scoreChunkRelevance(chunk.content, query),
+  })).filter((c: any) => c.score > 0);
 
-    if (!embedding || embedding.length !== queryEmbedding.length) {
-      return null;
-    }
-
-    // Cosine similarity
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-    for (let i = 0; i < embedding.length; i++) {
-      dotProduct += queryEmbedding[i] * embedding[i];
-      normA += queryEmbedding[i] ** 2;
-      normB += embedding[i] ** 2;
-    }
-    const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-
-    return {
-      id: chunk.id,
-      document_id: chunk.document_id,
-      document_name: docMap[chunk.document_id],
-      content: chunk.content,
-      chunk_index: chunk.chunk_index,
-      similarity,
-    };
-  }).filter((r: any) => r && r.similarity >= threshold);
-
-  // Sort by similarity and return top results
-  results.sort((a: any, b: any) => b.similarity - a.similarity);
-  return results.slice(0, limit);
+  // Sort by score and return top results
+  scoredChunks.sort((a: any, b: any) => b.score - a.score);
+  return scoredChunks.slice(0, limit);
 }
 
 // Generate answer using Lovable AI
@@ -226,18 +193,13 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Generate embedding for the question
-    console.log("Generating question embedding...");
-    const questionEmbedding = await generateEmbedding(question, lovableApiKey);
-
-    // Find similar chunks
-    console.log("Finding similar chunks...");
-    const relevantChunks = await findSimilarChunks(
+    // Find relevant chunks using keyword matching
+    console.log("Finding relevant chunks...");
+    const relevantChunks = await findRelevantChunks(
       supabase, 
-      questionEmbedding, 
+      question, 
       userId,
-      5,
-      0.25
+      5
     );
     console.log(`Found ${relevantChunks.length} relevant chunks`);
 
@@ -249,7 +211,7 @@ serve(async (req) => {
     const sources = relevantChunks.map((chunk: any) => ({
       documentName: chunk.document_name,
       excerpt: chunk.content.substring(0, 300) + (chunk.content.length > 300 ? '...' : ''),
-      similarity: Math.round(chunk.similarity * 100),
+      similarity: Math.min(Math.round(chunk.score * 25), 100), // Normalize score to percentage-like
       chunkIndex: chunk.chunk_index,
     }));
 
