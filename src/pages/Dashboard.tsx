@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { OnboardingData, AgentInsight, CommentBalloon } from '@/types/onboarding';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardPreview } from '@/components/dashboard/DashboardPreview';
@@ -12,7 +12,13 @@ type ViewType = 'projects' | 'journeys' | 'experiments' | 'intelligence';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<ViewType>('projects');
+  const [searchParams] = useSearchParams();
+  const viewParam = searchParams.get('view') as ViewType | null;
+  const [currentView, setCurrentView] = useState<ViewType>(
+    (viewParam && ['projects', 'journeys', 'experiments', 'intelligence'].includes(viewParam))
+      ? viewParam
+      : 'projects'
+  );
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const [insights, setInsights] = useState<AgentInsight[]>([]);
   const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
@@ -30,6 +36,20 @@ const Dashboard = () => {
       navigate('/onboarding');
     }
   }, [navigate]);
+
+  // Sync view with URL parameter
+  useEffect(() => {
+    const viewParam = searchParams.get('view') as ViewType | null;
+    if (viewParam && ['projects', 'journeys', 'experiments', 'intelligence'].includes(viewParam)) {
+      setCurrentView(viewParam);
+    }
+  }, [searchParams]);
+
+  // Update URL when view changes
+  const handleViewChange = (view: ViewType) => {
+    setCurrentView(view);
+    navigate(`/dashboard?view=${view}`, { replace: true });
+  };
 
   const generateInsights = (data: OnboardingData) => {
     // Generate agent-specific insights based on selected agents
@@ -141,7 +161,7 @@ const Dashboard = () => {
       <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar
           currentView={currentView}
-          onViewChange={setCurrentView}
+          onViewChange={handleViewChange}
         />
         <SidebarInset className="flex-1">
           <header className="h-14 flex items-center border-b border-border/40 px-4 sticky top-0 bg-background/95 backdrop-blur z-40">

@@ -27,7 +27,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate('/dashboard');
+      navigate('/dashboard?view=experiments');
     }
   }, [user, loading, navigate]);
 
