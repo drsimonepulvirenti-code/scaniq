@@ -2,20 +2,21 @@ import { UrlInput } from '@/components/UrlInput';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
-
 interface HeroSectionProps {
   onAnalyze: (url: string) => void;
   isLoading: boolean;
 }
-
-export const HeroSection = ({ onAnalyze, isLoading }: HeroSectionProps) => {
-  const { t } = useLanguage();
-
-  return (
-    <section className="relative overflow-hidden gradient-hero py-20 md:py-32">
+export const HeroSection = ({
+  onAnalyze,
+  isLoading
+}: HeroSectionProps) => {
+  const {
+    t
+  } = useLanguage();
+  return <section className="relative overflow-hidden gradient-hero py-20 md:py-32">
       <div className="container relative z-10">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          <Badge variant="secondary" className="mb-6 gap-2">
+          <Badge variant="secondary" className="mb-6 gap-2 border-dashed">
             <Sparkles className="w-3 h-3" />
             {t.hero.badge}
           </Badge>
@@ -49,6 +50,5 @@ export const HeroSection = ({ onAnalyze, isLoading }: HeroSectionProps) => {
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-1/2 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-primary/5 blur-3xl" />
       </div>
-    </section>
-  );
+    </section>;
 };
