@@ -124,6 +124,133 @@ export type Database = {
         }
         Relationships: []
       }
+      project_urls: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          scraped_data: Json | null
+          screenshot_url: string | null
+          source: string
+          status: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          scraped_data?: Json | null
+          screenshot_url?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          scraped_data?: Json | null
+          screenshot_url?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_urls_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          primary_url: string | null
+          screenshot_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          primary_url?: string | null
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          primary_url?: string | null
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      url_variants: {
+        Row: {
+          created_at: string
+          description: string | null
+          frame: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+          url_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          frame?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+          url_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          frame?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          url_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "url_variants_url_id_fkey"
+            columns: ["url_id"]
+            isOneToOne: false
+            referencedRelation: "project_urls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

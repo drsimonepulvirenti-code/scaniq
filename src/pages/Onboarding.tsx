@@ -8,10 +8,15 @@ import { OnboardingStep2 } from '@/components/onboarding/OnboardingStep2';
 import { OnboardingStep3 } from '@/components/onboarding/OnboardingStep3';
 import { OnboardingStep4 } from '@/components/onboarding/OnboardingStep4';
 import { OnboardingPreview } from '@/components/onboarding/OnboardingPreview';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const [saving, setSaving] = useState(false);
   
   // Get initial URL from navigation state (from homepage) - do this synchronously
   const initialUrl = useMemo(() => {
@@ -95,10 +100,64 @@ const Onboarding = () => {
     }
   };
 
-  const handleComplete = () => {
-    // Save to localStorage for dashboard
-    localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
-    navigate('/dashboard');
+  const handleComplete = async () => {
+    if (!user) {
+      toast.error('Please sign in first');
+      navigate('/auth');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Extract domain name for project name
+      let projectName = 'New Project';
+      try {
+        projectName = new URL(onboardingData.url).hostname;
+      } catch (e) {
+        projectName = onboardingData.url || 'New Project';
+      }
+
+      // Create project
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .insert({
+          user_id: user.id,
+          name: projectName,
+          primary_url: onboardingData.url,
+          screenshot_url: onboardingData.scrapedData?.screenshot || null,
+          description: onboardingData.context,
+        })
+        .select()
+        .single();
+
+      if (projectError) throw projectError;
+
+      // Create initial URL entry
+      const { error: urlError } = await supabase
+        .from('project_urls')
+        .insert([{
+          project_id: project.id,
+          user_id: user.id,
+          url: onboardingData.url,
+          source: 'onboarding',
+          status: 'ready',
+          screenshot_url: onboardingData.scrapedData?.screenshot || null,
+          scraped_data: onboardingData.scrapedData ? JSON.parse(JSON.stringify(onboardingData.scrapedData)) : null,
+        }]);
+
+      if (urlError) throw urlError;
+
+      // Also save to localStorage for backward compatibility
+      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
+      
+      toast.success('Project created successfully');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error saving project:', error);
+      toast.error('Failed to save project');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const canProceed = () => {
@@ -203,10 +262,10 @@ const Onboarding = () => {
             ) : (
               <button
                 onClick={handleComplete}
-                disabled={!canProceed()}
+                disabled={!canProceed() || saving}
                 className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save & Start Analysis
+                {saving ? 'Saving...' : 'Save & Start Analysis'}
               </button>
             )}
           </div>
