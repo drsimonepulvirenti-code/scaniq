@@ -27,9 +27,17 @@ interface NavigationState {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+<<<<<<< HEAD
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('projects');
   const [navigation, setNavigation] = useState<NavigationState>({ level: 1 });
+=======
+  const [currentView, setCurrentView] = useState<ViewType>('projects');
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
+  const [insights, setInsights] = useState<AgentInsight[]>([]);
+  const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
+  const [balloons, setBalloons] = useState<CommentBalloon[]>([]);
+>>>>>>> 94d842d (WIP: staged changes before pull)
 
   useEffect(() => {
     if (!user) {
@@ -37,6 +45,7 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
+<<<<<<< HEAD
   // Handle project card click -> go to Level 2
   const handleProjectClick = async (projectId: string) => {
     try {
@@ -86,6 +95,17 @@ const Dashboard = () => {
   const getBreadcrumbItems = () => {
     const items = [
       { label: 'My Projects', onClick: () => setNavigation({ level: 1 }) },
+=======
+  const generateInsights = (data: OnboardingData) => {
+    // Generate agent-specific insights based on selected agents
+    const agentInsights: AgentInsight[] = [];
+    const positions = [
+      { x: 15, y: 10 },
+      { x: 75, y: 25 },
+      { x: 50, y: 60 },
+      { x: 25, y: 80 },
+      { x: 80, y: 70 },
+>>>>>>> 94d842d (WIP: staged changes before pull)
     ];
 
     if (navigation.level >= 2 && navigation.projectName) {
@@ -170,12 +190,16 @@ const Dashboard = () => {
       <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar
           currentView={currentView}
+<<<<<<< HEAD
           onViewChange={(view) => {
             setCurrentView(view);
             if (view === 'projects') {
               setNavigation({ level: 1 });
             }
           }}
+=======
+          onViewChange={setCurrentView}
+>>>>>>> 94d842d (WIP: staged changes before pull)
         />
         <SidebarInset className="flex-1">
           <header className="h-14 flex items-center justify-between border-b border-border/40 px-4 sticky top-0 bg-background/95 backdrop-blur z-40">
