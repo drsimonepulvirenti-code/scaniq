@@ -89,6 +89,9 @@ const Onboarding = () => {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else {
+      // Navigate back to homepage when on step 0
+      navigate('/');
     }
   };
 
@@ -184,8 +187,7 @@ const Onboarding = () => {
           <div className="p-6 border-t border-border flex justify-between">
             <button
               onClick={handleBack}
-              disabled={currentStep === 0}
-              className="px-6 py-2 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
             >
               Back
             </button>
