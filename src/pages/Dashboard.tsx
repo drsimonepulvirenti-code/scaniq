@@ -1,185 +1,225 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { OnboardingData, AgentInsight, CommentBalloon } from '@/types/onboarding';
+import { Plus, Filter, Upload, MoreHorizontal } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Project } from '@/types/projects';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
-import { DashboardPreview } from '@/components/dashboard/DashboardPreview';
-import { DashboardSummary } from '@/components/dashboard/DashboardSummary';
+import { ProjectsGrid } from '@/components/projects/ProjectsGrid';
+import { ProjectUrlsTable } from '@/components/projects/ProjectUrlsTable';
+import { UrlVariantsDetail } from '@/components/projects/UrlVariantsDetail';
+import { ProjectBreadcrumb } from '@/components/projects/ProjectBreadcrumb';
+import { Button } from '@/components/ui/button';
 import { KnowledgeBase } from '@/components/dashboard/KnowledgeBase';
 import { Experiments } from '@/components/dashboard/Experiments';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { toast } from 'sonner';
 
 type ViewType = 'projects' | 'journeys' | 'experiments' | 'intelligence';
 
+interface NavigationState {
+  level: 1 | 2 | 3;
+  projectId?: string;
+  projectName?: string;
+  urlId?: string;
+  urlName?: string;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('projects');
-  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
-  const [insights, setInsights] = useState<AgentInsight[]>([]);
-  const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
-  const [balloons, setBalloons] = useState<CommentBalloon[]>([]);
+  const [navigation, setNavigation] = useState<NavigationState>({ level: 1 });
 
   useEffect(() => {
-    // Load onboarding data from localStorage
-    const storedData = localStorage.getItem('onboardingData');
-    if (storedData) {
-      const data = JSON.parse(storedData) as OnboardingData;
-      setOnboardingData(data);
-      generateInsights(data);
-    } else {
-      // Redirect to onboarding if no data
-      navigate('/onboarding');
+    if (!user) {
+      navigate('/auth');
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
-  const generateInsights = (data: OnboardingData) => {
-    // Generate agent-specific insights based on selected agents
-    const agentInsights: AgentInsight[] = [];
-    const positions = [
-      { x: 15, y: 10 },
-      { x: 75, y: 25 },
-      { x: 50, y: 60 },
-      { x: 25, y: 80 },
-      { x: 80, y: 70 },
+  // Handle project card click -> go to Level 2
+  const handleProjectClick = async (projectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', projectId)
+        .single();
+
+      if (error) throw error;
+
+      setNavigation({
+        level: 2,
+        projectId,
+        projectName: data.name,
+      });
+    } catch (error) {
+      console.error('Error fetching project:', error);
+      toast.error('Failed to open project');
+    }
+  };
+
+  // Handle URL row click -> go to Level 3
+  const handleUrlClick = async (urlId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('project_urls')
+        .select('url')
+        .eq('id', urlId)
+        .single();
+
+      if (error) throw error;
+
+      setNavigation(prev => ({
+        ...prev,
+        level: 3,
+        urlId,
+        urlName: new URL(data.url).hostname,
+      }));
+    } catch (error) {
+      console.error('Error fetching URL:', error);
+      toast.error('Failed to open URL');
+    }
+  };
+
+  // Build breadcrumb items based on current level
+  const getBreadcrumbItems = () => {
+    const items = [
+      { label: 'My Projects', onClick: () => setNavigation({ level: 1 }) },
     ];
 
-    if (data.selectedAgents.includes('ui-designer')) {
-      agentInsights.push({
-        id: 'ui-1',
-        agentId: 'ui-designer',
-        agentName: 'UI Designer',
-        agentIcon: 'Palette',
-        title: 'Improve Visual Hierarchy',
-        description: 'The primary CTA button could benefit from higher contrast and more visual weight to stand out from secondary elements.',
-        priority: 'high',
-        position: positions[0],
+    if (navigation.level >= 2 && navigation.projectName) {
+      items.push({
+        label: navigation.projectName,
+        onClick: () => setNavigation({
+          level: 2,
+          projectId: navigation.projectId,
+          projectName: navigation.projectName,
+        }),
       });
     }
 
-    if (data.selectedAgents.includes('ux-designer')) {
-      agentInsights.push({
-        id: 'ux-1',
-        agentId: 'ux-designer',
-        agentName: 'UX Designer',
-        agentIcon: 'MousePointer',
-        title: 'Simplify Navigation',
-        description: 'Consider reducing the number of navigation items. Users may experience decision fatigue with too many options.',
-        priority: 'high',
-        position: positions[1],
+    if (navigation.level === 3 && navigation.urlName) {
+      items.push({
+        label: 'Generated Variants',
+        onClick: undefined,
       });
     }
 
-    if (data.selectedAgents.includes('seo-specialist')) {
-      agentInsights.push({
-        id: 'seo-1',
-        agentId: 'seo-specialist',
-        agentName: 'SEO Specialist',
-        agentIcon: 'Search',
-        title: 'Optimize Meta Description',
-        description: 'The meta description is missing key terms. Add your primary keyword within the first 120 characters.',
-        priority: 'medium',
-        position: positions[2],
-      });
-    }
-
-    if (data.selectedAgents.includes('accessibility-expert')) {
-      agentInsights.push({
-        id: 'a11y-1',
-        agentId: 'accessibility-expert',
-        agentName: 'Accessibility Expert',
-        agentIcon: 'Accessibility',
-        title: 'Improve Color Contrast',
-        description: 'Some text elements do not meet WCAG AA standards. Increase contrast ratio to at least 4.5:1.',
-        priority: 'high',
-        position: positions[3],
-      });
-    }
-
-    if (data.selectedAgents.includes('performance-engineer')) {
-      agentInsights.push({
-        id: 'perf-1',
-        agentId: 'performance-engineer',
-        agentName: 'Performance Engineer',
-        agentIcon: 'Zap',
-        title: 'Optimize Images',
-        description: 'Large unoptimized images are increasing load time. Use WebP format and implement lazy loading.',
-        priority: 'medium',
-        position: positions[4],
-      });
-    }
-
-    setInsights(agentInsights);
-
-    // Create balloons from insights
-    const newBalloons: CommentBalloon[] = agentInsights.map(insight => ({
-      id: insight.id,
-      x: insight.position?.x || 50,
-      y: insight.position?.y || 50,
-      agentId: insight.agentId,
-      agentName: insight.agentName,
-      title: insight.title,
-      content: insight.description,
-      priority: insight.priority,
-    }));
-
-    setBalloons(newBalloons);
+    return items;
   };
 
-  const handleInsightClick = (insightId: string) => {
-    setSelectedInsight(selectedInsight === insightId ? null : insightId);
+  // Get page title based on current level
+  const getPageTitle = () => {
+    if (currentView !== 'projects') {
+      return currentView === 'intelligence' 
+        ? 'Intelligence' 
+        : currentView.charAt(0).toUpperCase() + currentView.slice(1);
+    }
+    switch (navigation.level) {
+      case 1:
+        return 'My Projects';
+      case 2:
+        return navigation.projectName || 'Project';
+      case 3:
+        return 'Generated Variants';
+      default:
+        return 'My Projects';
+    }
   };
 
-  const handleBalloonClick = (balloonId: string) => {
-    setSelectedInsight(selectedInsight === balloonId ? null : balloonId);
+  // Get page subtitle
+  const getPageSubtitle = () => {
+    switch (navigation.level) {
+      case 1:
+        return 'Customize your AI agent\'s design to reflect your brand identity';
+      case 2:
+        return 'Manage URLs and view generated variants';
+      case 3:
+        return 'Review and approve generated variants';
+      default:
+        return '';
+    }
   };
 
-  if (!onboardingData) {
-    return null;
-  }
+  const renderProjectsContent = () => {
+    switch (navigation.level) {
+      case 1:
+        return <ProjectsGrid onProjectClick={handleProjectClick} />;
+      case 2:
+        return (
+          <ProjectUrlsTable 
+            projectId={navigation.projectId!} 
+            onUrlClick={handleUrlClick}
+          />
+        );
+      case 3:
+        return (
+          <UrlVariantsDetail 
+            urlId={navigation.urlId!}
+            projectName={navigation.projectName || ''}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar
           currentView={currentView}
-          onViewChange={setCurrentView}
+          onViewChange={(view) => {
+            setCurrentView(view);
+            if (view === 'projects') {
+              setNavigation({ level: 1 });
+            }
+          }}
         />
         <SidebarInset className="flex-1">
-          <header className="h-14 flex items-center border-b border-border/40 px-4 sticky top-0 bg-background/95 backdrop-blur z-40">
-            <SidebarTrigger className="mr-4" />
-            <h1 className="text-lg font-semibold">
-              {currentView === 'projects' ? 'My Projects' : 
-               currentView === 'intelligence' ? 'Intelligence' : 
-               currentView.charAt(0).toUpperCase() + currentView.slice(1)}
-            </h1>
+          <header className="h-14 flex items-center justify-between border-b border-border/40 px-4 sticky top-0 bg-background/95 backdrop-blur z-40">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              {currentView === 'projects' && navigation.level > 1 ? (
+                <ProjectBreadcrumb items={getBreadcrumbItems()} />
+              ) : (
+                <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
+              )}
+            </div>
+
+            {currentView === 'projects' && navigation.level === 1 && (
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon">
+                  <Plus className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="icon">
+                  <Filter className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="icon">
+                  <Upload className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </div>
+            )}
           </header>
 
-          <main className="flex-1 flex">
+          <main className="flex-1 p-6">
+            {currentView === 'projects' && navigation.level === 1 && (
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
+                <p className="text-muted-foreground">{getPageSubtitle()}</p>
+              </div>
+            )}
+
             {currentView === 'intelligence' ? (
               <KnowledgeBase />
             ) : currentView === 'experiments' ? (
               <Experiments />
             ) : (
-              <>
-                {/* Main viewport with preview */}
-                <div className="flex-1 p-6">
-                  <DashboardPreview
-                    url={onboardingData.url}
-                    balloons={balloons}
-                    selectedBalloon={selectedInsight}
-                    onBalloonClick={handleBalloonClick}
-                  />
-                </div>
-
-                {/* Summary panel */}
-                <div className="w-96 border-l border-border">
-                  <DashboardSummary
-                    onboardingData={onboardingData}
-                    insights={insights}
-                    selectedInsight={selectedInsight}
-                    onInsightClick={handleInsightClick}
-                  />
-                </div>
-              </>
+              renderProjectsContent()
             )}
           </main>
         </SidebarInset>
