@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { ScrapedData } from '@/types/onboarding';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
 interface OnboardingStep0Props {
   initialUrl: string; // URL passed from homepage (stable reference)
   url: string;
@@ -13,13 +12,12 @@ interface OnboardingStep0Props {
   onScrapingComplete: (data: ScrapedData) => void;
   isComplete: boolean;
 }
-
 export const OnboardingStep0 = ({
   initialUrl,
   url,
   onUrlSubmit,
   onScrapingComplete,
-  isComplete,
+  isComplete
 }: OnboardingStep0Props) => {
   // Initialize with initialUrl (from homepage) or current url
   const [inputUrl, setInputUrl] = useState(initialUrl || url || '');
@@ -49,13 +47,11 @@ export const OnboardingStep0 = ({
       return false;
     }
   };
-
   const handleScrape = async (urlToScrape: string) => {
     if (!isValidUrl(urlToScrape)) {
       toast.error('Please enter a valid URL');
       return;
     }
-
     const formattedUrl = formatUrl(urlToScrape);
     onUrlSubmit(formattedUrl);
     setIsLoading(true);
@@ -65,17 +61,18 @@ export const OnboardingStep0 = ({
     const progressInterval = setInterval(() => {
       setProgress(prev => Math.min(prev + 10, 90));
     }, 500);
-
     try {
-      const { data, error } = await supabase.functions.invoke('scrape-website', {
-        body: { url: formattedUrl },
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('scrape-website', {
+        body: {
+          url: formattedUrl
+        }
       });
-
       clearInterval(progressInterval);
       setProgress(100);
-
       if (error) throw error;
-
       const scrapedData: ScrapedData = {
         url: formattedUrl,
         title: data.title || 'Untitled Page',
@@ -84,9 +81,8 @@ export const OnboardingStep0 = ({
         targetAudience: data.targetAudience || [],
         suggestedObjectives: data.suggestedObjectives || [],
         screenshot: data.screenshot,
-        markdown: data.markdown,
+        markdown: data.markdown
       };
-
       onScrapingComplete(scrapedData);
       toast.success('Website analyzed successfully!');
     } catch (error) {
@@ -107,17 +103,12 @@ export const OnboardingStep0 = ({
       handleScrape(initialUrl);
     }
   }, [initialUrl, isComplete]);
-
   const handleManualScrape = () => {
     handleScrape(inputUrl);
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">
-          Add your website!!!
-        </h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Add your website!</h2>
         <p className="text-muted-foreground">
           Enter your website URL and our AI will analyze it to extract insights about your business.
         </p>
@@ -127,57 +118,31 @@ export const OnboardingStep0 = ({
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-              placeholder="https://example.com"
-              className="pl-10 h-12"
-              disabled={isLoading || isComplete}
-            />
+            <Input value={inputUrl} onChange={e => setInputUrl(e.target.value)} placeholder="https://example.com" className="pl-10 h-12" disabled={isLoading || isComplete} />
           </div>
-          <Button
-            onClick={handleManualScrape}
-            disabled={!inputUrl || isLoading || isComplete}
-            className="h-12 px-6"
-          >
-            {isLoading ? (
-              <>
+          <Button onClick={handleManualScrape} disabled={!inputUrl || isLoading || isComplete} className="h-12 px-6">
+            {isLoading ? <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Analyzing...
-              </>
-            ) : isComplete ? (
-              <>
+              </> : isComplete ? <>
                 <Check className="w-4 h-4 mr-2" />
                 Analyzed
-              </>
-            ) : (
-              'Analyze'
-            )}
+              </> : 'Analyze'}
           </Button>
         </div>
 
-        {isLoading && (
-          <div className="space-y-2">
+        {isLoading && <div className="space-y-2">
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+              <div className="h-full bg-primary transition-all duration-300" style={{
+            width: `${progress}%`
+          }} />
             </div>
             <p className="text-sm text-muted-foreground">
-              {progress < 30
-                ? 'Fetching website content...'
-                : progress < 60
-                ? 'Extracting key information...'
-                : progress < 90
-                ? 'Analyzing with AI...'
-                : 'Finalizing analysis...'}
+              {progress < 30 ? 'Fetching website content...' : progress < 60 ? 'Extracting key information...' : progress < 90 ? 'Analyzing with AI...' : 'Finalizing analysis...'}
             </p>
-          </div>
-        )}
+          </div>}
 
-        {isComplete && (
-          <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+        {isComplete && <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
             <div className="flex items-center gap-2 text-primary mb-2">
               <Check className="w-5 h-5" />
               <span className="font-medium">Analysis Complete</span>
@@ -185,9 +150,7 @@ export const OnboardingStep0 = ({
             <p className="text-sm text-muted-foreground">
               Your website has been analyzed. Click "Continue" to review the extracted information.
             </p>
-          </div>
-        )}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 };
