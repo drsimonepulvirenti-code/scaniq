@@ -116,7 +116,7 @@ export const OnboardingStep0 = ({
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          Add your website
+          Add your website!!!
         </h2>
         <p className="text-muted-foreground">
           Enter your website URL and our AI will analyze it to extract insights about your business.
