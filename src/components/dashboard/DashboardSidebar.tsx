@@ -20,6 +20,7 @@ import {
   LogOut, 
   Settings,
   ChevronDown,
+  FileText,
   Database,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,13 +30,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -66,6 +60,7 @@ export const DashboardSidebar = ({ currentView, onViewChange }: DashboardSidebar
 
   const intelligenceItems = [
     { id: 'knowledge', label: 'Knowledge Base', icon: Database },
+    { id: 'documents', label: 'Documents', icon: FileText },
   ];
 
   return (
@@ -168,6 +163,9 @@ export const DashboardSidebar = ({ currentView, onViewChange }: DashboardSidebar
           <SidebarMenuButton className="flex-1">
             <Settings className="w-4 h-4" />
             {!isCollapsed && <span>Settings</span>}
+          </SidebarMenuButton>
+          <SidebarMenuButton onClick={handleSignOut}>
+            <LogOut className="w-4 h-4" />
           </SidebarMenuButton>
         </div>
       </SidebarFooter>
