@@ -11,6 +11,9 @@ import Scan from "./pages/Scan";
 import Results from "./pages/Results";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import Projects from "./pages/Projects";
+import ProjectUrls from "./pages/ProjectUrls";
+import UrlDetail from "./pages/UrlDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +33,9 @@ const App = () => (
               <Route path="/results/:url" element={<Results />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:projectId" element={<ProjectUrls />} />
+              <Route path="/projects/:projectId/urls/:urlId" element={<UrlDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -8,10 +8,15 @@ import { OnboardingStep2 } from '@/components/onboarding/OnboardingStep2';
 import { OnboardingStep3 } from '@/components/onboarding/OnboardingStep3';
 import { OnboardingStep4 } from '@/components/onboarding/OnboardingStep4';
 import { OnboardingPreview } from '@/components/onboarding/OnboardingPreview';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
   
   // Get initial URL from navigation state (from homepage) - do this synchronously
   const initialUrl = useMemo(() => {
@@ -92,10 +97,53 @@ const Onboarding = () => {
     }
   };
 
-  const handleComplete = () => {
-    // Save to localStorage for dashboard
-    localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
-    navigate('/dashboard');
+  const handleComplete = async () => {
+    if (!user) {
+      toast({ title: 'Error', description: 'Please sign in to create a project', variant: 'destructive' });
+      navigate('/auth');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Extract project name from URL
+      const urlObj = new URL(onboardingData.url);
+      const projectName = urlObj.hostname.replace('www.', '');
+
+      // Create project in database
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .insert({
+          user_id: user.id,
+          name: projectName,
+          primary_url: onboardingData.url,
+          description: onboardingData.context,
+        })
+        .select()
+        .single();
+
+      if (projectError) throw projectError;
+
+      // Create primary URL entry
+      await supabase.from('project_urls').insert({
+        project_id: project.id,
+        user_id: user.id,
+        url: onboardingData.url,
+        source: 'onboarding',
+        status: 'active',
+      });
+
+      // Save to localStorage for backward compatibility
+      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
+      
+      // Navigate to the new project
+      navigate(`/projects/${project.id}`);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({ title: 'Error', description: 'Failed to create project', variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const canProceed = () => {
@@ -201,10 +249,10 @@ const Onboarding = () => {
             ) : (
               <button
                 onClick={handleComplete}
-                disabled={!canProceed()}
+                disabled={!canProceed() || isSaving}
                 className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save & Start Analysis
+                {isSaving ? 'Saving...' : 'Save & Start Analysis'}
               </button>
             )}
           </div>
