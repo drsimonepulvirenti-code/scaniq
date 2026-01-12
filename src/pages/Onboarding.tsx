@@ -9,6 +9,7 @@ import { OnboardingStep3 } from '@/components/onboarding/OnboardingStep3';
 import { OnboardingStep4 } from '@/components/onboarding/OnboardingStep4';
 import { OnboardingPreview } from '@/components/onboarding/OnboardingPreview';
 import { useAuth } from '@/hooks/useAuth';
+import { useGuestSession } from '@/hooks/useGuestSession';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -16,6 +17,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { saveGuestSession } = useGuestSession();
   const [isSaving, setIsSaving] = useState(false);
   
   // Get initial URL from navigation state (from homepage) - do this synchronously
@@ -97,14 +99,9 @@ const Onboarding = () => {
     }
   };
 
-  const handleComplete = async () => {
-    if (!user) {
-      toast({ title: 'Error', description: 'Please sign in to create a project', variant: 'destructive' });
-      navigate('/auth');
-      return;
-    }
-
-    setIsSaving(true);
+  const saveToDatabase = async () => {
+    if (!user) return null;
+    
     try {
       // Extract project name from URL
       const urlObj = new URL(onboardingData.url);
@@ -125,21 +122,46 @@ const Onboarding = () => {
       if (projectError) throw projectError;
 
       // Create primary URL entry
-      await supabase.from('project_urls').insert({
+      await supabase.from('project_urls').insert([{
         project_id: project.id,
         user_id: user.id,
         url: onboardingData.url,
         source: 'onboarding',
         status: 'active',
-      });
+        scraped_data: onboardingData.scrapedData as any,
+      }]);
 
-      // Save to localStorage for backward compatibility
-      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
-      
-      // Navigate to the new project
-      navigate(`/projects/${project.id}`);
+      return project;
     } catch (error) {
       console.error('Error creating project:', error);
+      throw error;
+    }
+  };
+
+  const handleComplete = async () => {
+    setIsSaving(true);
+    
+    try {
+      // Always save to localStorage for backward compatibility
+      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
+
+      if (user) {
+        // Authenticated user - save to database
+        const project = await saveToDatabase();
+        if (project) {
+          navigate(`/projects/${project.id}`);
+        }
+      } else {
+        // Guest user - save to guest session and go to dashboard preview
+        saveGuestSession(onboardingData);
+        toast({ 
+          title: 'Preview Mode', 
+          description: 'Sign up to save your project and access all features' 
+        });
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
       toast({ title: 'Error', description: 'Failed to create project', variant: 'destructive' });
     } finally {
       setIsSaving(false);
@@ -252,7 +274,7 @@ const Onboarding = () => {
                 disabled={!canProceed() || isSaving}
                 className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? 'Saving...' : 'Save & Start Analysis'}
+                {isSaving ? 'Saving...' : user ? 'Save & Start Analysis' : 'Preview Results'}
               </button>
             )}
           </div>

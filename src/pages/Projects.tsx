@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { ProjectCard } from '@/components/projects/ProjectCard';
@@ -7,13 +7,18 @@ import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2, FolderOpen } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+
+type ViewType = 'projects' | 'journeys' | 'experiments' | 'intelligence';
 
 const Projects = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { projects, loading, deleteProject } = useProjects();
-  const [currentView, setCurrentView] = useState<'projects' | 'journeys' | 'experiments' | 'intelligence'>('projects');
+  
+  // Get view from URL params, default to 'projects'
+  const currentView = (searchParams.get('view') as ViewType) || 'projects';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -21,10 +26,13 @@ const Projects = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const handleViewChange = (view: 'projects' | 'journeys' | 'experiments' | 'intelligence') => {
-    setCurrentView(view);
-    if (view !== 'projects') {
-      navigate('/dashboard');
+  const handleViewChange = (view: ViewType) => {
+    if (view === 'projects') {
+      // Stay on /projects with view param
+      setSearchParams({ view });
+    } else {
+      // Navigate to dashboard with the view
+      navigate(`/dashboard?view=${view}`);
     }
   };
 
