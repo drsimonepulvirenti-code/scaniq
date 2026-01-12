@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -6,8 +6,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarFooter,
   useSidebar,
@@ -45,11 +43,15 @@ export const DashboardSidebar = ({ currentView, onViewChange }: DashboardSidebar
   const { user, signOut } = useAuth();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
-  const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  const [intelligenceOpen, setIntelligenceOpen] = useState(currentView === 'intelligence');
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleViewClick = (view: ViewType) => {
+    onViewChange(view);
   };
 
   const menuItems = [
@@ -66,77 +68,75 @@ export const DashboardSidebar = ({ currentView, onViewChange }: DashboardSidebar
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">C</span>
           </div>
           {!isCollapsed && (
             <span className="font-semibold text-sidebar-foreground">Collabase</span>
           )}
-        </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent className="p-2">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {menuItems.map((item) => (
+              <SidebarMenuItem key={item.id}>
+                <SidebarMenuButton
+                  onClick={() => handleViewClick(item.id)}
+                  className={cn(
+                    'w-full',
+                    currentView === item.id && 'bg-sidebar-accent text-sidebar-accent-foreground'
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  {!isCollapsed && <span>{item.label}</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+
+            {/* Intelligence with nested items */}
+            <Collapsible open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
                   <SidebarMenuButton
-                    onClick={() => onViewChange(item.id)}
                     className={cn(
                       'w-full',
-                      currentView === item.id && 'bg-sidebar-accent text-sidebar-accent-foreground'
+                      currentView === 'intelligence' && 'bg-sidebar-accent text-sidebar-accent-foreground'
                     )}
                   >
-                    <item.icon className="w-5 h-5" />
-                    {!isCollapsed && <span>{item.label}</span>}
+                    <Brain className="w-5 h-5" />
+                    {!isCollapsed && (
+                      <>
+                        <span className="flex-1">Intelligence</span>
+                        <ChevronDown className={cn(
+                          'w-4 h-4 transition-transform',
+                          intelligenceOpen && 'rotate-180'
+                        )} />
+                      </>
+                    )}
                   </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                </CollapsibleTrigger>
 
-              {/* Intelligence with nested items */}
-              <Collapsible open={intelligenceOpen} onOpenChange={setIntelligenceOpen}>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      className={cn(
-                        'w-full',
-                        currentView === 'intelligence' && 'bg-sidebar-accent text-sidebar-accent-foreground'
-                      )}
-                    >
-                      <Brain className="w-5 h-5" />
-                      {!isCollapsed && (
-                        <>
-                          <span className="flex-1">Intelligence</span>
-                          <ChevronDown className={cn(
-                            'w-4 h-4 transition-transform',
-                            intelligenceOpen && 'rotate-180'
-                          )} />
-                        </>
-                      )}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-
-                  {!isCollapsed && (
-                    <CollapsibleContent className="pl-6 mt-1 space-y-1">
-                      {intelligenceItems.map((subItem) => (
-                        <SidebarMenuButton
-                          key={subItem.id}
-                          onClick={() => onViewChange('intelligence')}
-                          className="w-full text-sm"
-                        >
-                          <subItem.icon className="w-4 h-4" />
-                          <span>{subItem.label}</span>
-                        </SidebarMenuButton>
-                      ))}
-                    </CollapsibleContent>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                {!isCollapsed && (
+                  <CollapsibleContent className="pl-6 mt-1 space-y-1">
+                    {intelligenceItems.map((subItem) => (
+                      <SidebarMenuButton
+                        key={subItem.id}
+                        onClick={() => handleViewClick('intelligence')}
+                        className="w-full text-sm"
+                      >
+                        <subItem.icon className="w-4 h-4" />
+                        <span>{subItem.label}</span>
+                      </SidebarMenuButton>
+                    ))}
+                  </CollapsibleContent>
+                )}
+              </SidebarMenuItem>
+            </Collapsible>
+          </SidebarMenu>
+        </SidebarGroupContent>
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border">
@@ -164,9 +164,11 @@ export const DashboardSidebar = ({ currentView, onViewChange }: DashboardSidebar
             <Settings className="w-4 h-4" />
             {!isCollapsed && <span>Settings</span>}
           </SidebarMenuButton>
-          <SidebarMenuButton onClick={handleSignOut}>
-            <LogOut className="w-4 h-4" />
-          </SidebarMenuButton>
+          {user && (
+            <SidebarMenuButton onClick={handleSignOut}>
+              <LogOut className="w-4 h-4" />
+            </SidebarMenuButton>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>

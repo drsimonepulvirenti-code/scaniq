@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { OnboardingData, AgentInsight, CommentBalloon } from '@/types/onboarding';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardPreview } from '@/components/dashboard/DashboardPreview';
@@ -7,29 +7,48 @@ import { DashboardSummary } from '@/components/dashboard/DashboardSummary';
 import { KnowledgeBase } from '@/components/dashboard/KnowledgeBase';
 import { Experiments } from '@/components/dashboard/Experiments';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/useAuth';
+import { useGuestSession } from '@/hooks/useGuestSession';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, UserPlus } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type ViewType = 'projects' | 'journeys' | 'experiments' | 'intelligence';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<ViewType>('projects');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+  const { guestData, hasGuestSession } = useGuestSession();
+  
+  // Get view from URL params, default to 'projects'
+  const currentView = (searchParams.get('view') as ViewType) || 'projects';
+  
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const [insights, setInsights] = useState<AgentInsight[]>([]);
   const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
   const [balloons, setBalloons] = useState<CommentBalloon[]>([]);
 
+  // Handle view change via URL params for persistence
+  const handleViewChange = (view: ViewType) => {
+    setSearchParams({ view });
+  };
+
   useEffect(() => {
-    // Load onboarding data from localStorage
+    // Load onboarding data from localStorage or guest session
     const storedData = localStorage.getItem('onboardingData');
     if (storedData) {
       const data = JSON.parse(storedData) as OnboardingData;
       setOnboardingData(data);
       generateInsights(data);
+    } else if (guestData) {
+      setOnboardingData(guestData);
+      generateInsights(guestData);
     } else {
       // Redirect to onboarding if no data
       navigate('/onboarding');
     }
-  }, [navigate]);
+  }, [navigate, guestData]);
 
   const generateInsights = (data: OnboardingData) => {
     // Generate agent-specific insights based on selected agents
@@ -136,22 +155,45 @@ const Dashboard = () => {
     return null;
   }
 
+  const isGuestMode = !user && hasGuestSession;
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar
           currentView={currentView}
-          onViewChange={setCurrentView}
+          onViewChange={handleViewChange}
         />
         <SidebarInset className="flex-1">
           <header className="h-14 flex items-center border-b border-border/40 px-4 sticky top-0 bg-background/95 backdrop-blur z-40">
             <SidebarTrigger className="mr-4" />
-            <h1 className="text-lg font-semibold">
+            <h1 className="text-lg font-semibold flex-1">
               {currentView === 'projects' ? 'My Projects' : 
                currentView === 'intelligence' ? 'Intelligence' : 
                currentView.charAt(0).toUpperCase() + currentView.slice(1)}
             </h1>
+            {isGuestMode && (
+              <Button asChild size="sm">
+                <Link to="/auth">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Sign up to save
+                </Link>
+              </Button>
+            )}
           </header>
+
+          {/* Guest mode banner */}
+          {isGuestMode && (
+            <div className="px-4 pt-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Preview Mode</AlertTitle>
+                <AlertDescription>
+                  You're viewing a preview of your analysis. Sign up to save your project and access all features.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
 
           <main className="flex-1 flex">
             {currentView === 'intelligence' ? (
