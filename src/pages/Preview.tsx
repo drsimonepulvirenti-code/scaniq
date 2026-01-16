@@ -77,15 +77,15 @@ const Preview = () => {
 
       setStatus('building');
       
-      // Generate StackBlitz URL for the repository
-      // StackBlitz supports direct GitHub import
+      // Generate CodeSandbox URL for the repository
+      // CodeSandbox supports direct GitHub import via their devbox
       const branch = parsed.branch || repoData.default_branch || 'main';
-      const stackblitzUrl = `https://stackblitz.com/github/${parsed.owner}/${parsed.repo}/tree/${branch}?embed=1&file=README.md&hideNavigation=1&view=preview`;
+      const codesandboxUrl = `https://codesandbox.io/p/devbox/github/${parsed.owner}/${parsed.repo}/tree/${branch}?embed=1&file=/README.md`;
       
       // Small delay to show building state
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      setPreviewUrl(stackblitzUrl);
+      setPreviewUrl(codesandboxUrl);
       setStatus('ready');
       
       toast({
