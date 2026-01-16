@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectUrls from "./pages/ProjectUrls";
 import UrlDetail from "./pages/UrlDetail";
+import Preview from "./pages/Preview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:projectId" element={<ProjectUrls />} />
               <Route path="/projects/:projectId/urls/:urlId" element={<UrlDetail />} />
+              <Route path="/preview" element={<Preview />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
